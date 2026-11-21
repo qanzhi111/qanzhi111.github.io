@@ -1,0 +1,150 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>链上侦探每日简报 - 2026年6月21日</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>链上侦探每日简报 - 2026年6月21日</h1>
+<h2>📊 今日Web3欺诈/攻击事件汇总</h2>
+<table><thead><tr><th>事件</th><th>损失金额</th><th>时间</th><th>状态</th><th>优先级</th></tr></thead><tbody>
+<tr><td>CryptoBandits.A USB蠕虫</td><td>未知（持续活跃）</td><td>2月至今</td><td>Microsoft 6/17披露</td><td>⭐⭐⭐ 深度调查</td></tr>
+<tr><td>Rokarolla安卓银行木马</td><td>未知</td><td>6/17报告</td><td>Zimperium发现</td><td>⭐⭐ 简报</td></tr>
+<tr><td>Axelar Bridge攻击</td><td>$4.67M</td><td>6/20</td><td>Secret Network ICS-20漏洞</td><td>⭐⭐ 已知</td></tr>
+<tr><td>Polymarket内幕交易</td><td>$1.2M</td><td>6/13</td><td>Google工程师涉案</td><td>⭐ 追踪</td></tr>
+<tr><td>加纳/英国冻结$15M</td><td>$15.1M</td><td>6/16</td><td>执法行动（Chainalysis）</td><td>资讯</td></tr>
+</tbody></table>
+<hr>
+<h2>🔥 重点事件</h2>
+<h3>1. CryptoBandits.A / Crypto Clipper（⭐⭐⭐ 已完成深度调查）</h3>
+<p><strong>来源：</strong> Microsoft Security Blog (2026-06-17)</p>
+<ul>
+<li><strong>类型：</strong> USB蠕虫 + 剪贴板劫持 + 加密货币窃取木马</li>
+<li><strong>活跃时间：</strong> 2026年2月至今</li>
+<li><strong>检测名：</strong> Trojan:Win32/CryptoBandits.A</li>
+<li><strong>攻击向量：</strong> USB设备传播，.lnk快捷方式伪装</li>
+<li><strong>核心功能：</strong> 每500ms替换剪贴板中的BTC/ETH/XMR地址</li>
+<li><strong>C2通信：</strong> 内置Tor客户端，通过.onion隐藏服务通信</li>
+<li><strong>规避技术：</strong> EFI分区隐藏文件、Tor加密通信、进程注入</li>
+<li><strong>ZachXBT覆盖：</strong> ❌ 未发现，属于空白领域</li>
+</ul>
+<p><strong>产出文件：</strong></p>
+<ul>
+<li>调查报告：<code>链上调查/CryptoBandits-A/CryptoBandits-A调查报告_20260621.md</code></li>
+<li>X Thread：<code>链上调查/CryptoBandits-A/CryptoBandits-A_X-Thread_20260621.md</code>（7条）</li>
+</ul>
+<p><strong>独特分析价值：</strong> 物理攻击面回归 + 蠕虫传播 + 微软一手信息 + ZachXBT未覆盖</p>
+<hr>
+<h3>2. Rokarolla 安卓银行木马（⭐⭐）</h3>
+<p><strong>来源：</strong> Zimperium zLabs (2026-06-17)</p>
+<ul>
+<li><strong>类型：</strong> 安卓银行/加密货币木马</li>
+<li><strong>伪装：</strong> TikTok / Google Chrome</li>
+<li><strong>攻击范围：</strong> 217款银行和加密货币应用</li>
+<li><strong>核心功能：</strong></li>
+<li>137条攻击指令</li>
+<li>屏幕叠加伪造登录页</li>
+<li>窃取锁屏PIN/密码/联系人/短信</li>
+<li>键盘记录器</li>
+<li>拦截银行验证电话</li>
+<li>禁用Google Play Protect</li>
+<li><strong>传播渠道：</strong> 恶意网站弹窗诱导安装（非官方应用商店）</li>
+</ul>
+<p><strong>评估：</strong> 传统安卓木马但规模大、功能全面。主要影响安卓用户，与CryptoBandits.A形成互补（PC端vs移动端同时受到攻击）。适合后续单独追踪。</p>
+<hr>
+<h3>3. Axelar Bridge $4.67M攻击（⭐⭐ 已知事件）</h3>
+<p><strong>来源：</strong> PANews (2026-06-20), Axelar X平台公告</p>
+<ul>
+<li><strong>损失：</strong> ~$4.67M</li>
+<li><strong>漏洞：</strong> Secret端ICS-20智能合约（Cosmos IBC连接组件）</li>
+<li><strong>影响范围：</strong> 仅限Secret端IBC桥接资产（Axelar → Secret Network）</li>
+<li><strong>应急响应：</strong> Axelar应急委员会立即禁用Secret和Secret-SNIP连接</li>
+<li><strong>攻击者地址/交易哈希：</strong> 暂无公开信息</li>
+<li><strong>ZachXBT覆盖：</strong> 已覆盖（6/20报道中提及）</li>
+</ul>
+<p><strong>评估：</strong> 金额达标但信息有限，ZachXBT已覆盖。已在MEMORY.md 6/20状态中记录。跨链桥安全仍是持续性议题——6月跨链桥累计损失已超$26.75M。</p>
+<hr>
+<h3>4. Polymarket内幕交易 $1.2M（⭐ 追踪）</h3>
+<p><strong>来源：</strong> SpazioCrypto (2026-06-13)</p>
+<ul>
+<li><strong>涉案人：</strong> Michele Spagnuolo（Google安全工程师）</li>
+<li><strong>获利：</strong> $1.2M</li>
+<li><strong>手法：</strong> 利用Google内部搜索数据在Polymarket下注</li>
+<li><strong>背景：</strong> 不到一个月内第二起预测市场内幕交易案</li>
+<li><strong>监管环境：</strong> CFTC已提出预测市场正式规则，SEC转向&quot;执法优先&quot;模式</li>
+<li><strong>相关案例：</strong> 美国陆军士兵利用委内瑞拉行动机密信息获利$404K</li>
+</ul>
+<p><strong>评估：</strong> 有趣的监管+合规议题，但不属于传统链上欺诈/黑客事件。作为预测市场监管叙事的一部分持续追踪。</p>
+<hr>
+<h3>5. 加纳/英国冻结$15.1M加密资产（资讯）</h3>
+<p><strong>来源：</strong> Chainalysis (2026-06-16)</p>
+<ul>
+<li><strong>涉案方：</strong> 中国-马来西亚有组织犯罪集团</li>
+<li><strong>手法：</strong> 高回报电商投资平台幌子，加密货币洗钱</li>
+<li><strong>工具：</strong> Chainalysis Reactor区块链分析</li>
+<li><strong>冻结金额：</strong> ~$15.1M（分散在近20种代币中：BTC/ETH/USDT等）</li>
+<li><strong>合作方：</strong> 加纳+英国+欧洲刑警组织</li>
+</ul>
+<p><strong>评估：</strong> 执法成功案例，展示了区块链分析工具在跨国犯罪打击中的价值。与ChainSentinel&quot;研究端卖铲子&quot;路线相关——区块链分析工具需求持续增长。</p>
+<hr>
+<h2>📈 趋势观察</h2>
+<h3>本月攻击模式总结</h3>
+<ol>
+<li><strong>跨链桥仍是最大攻击面：</strong> 6月累计损失超$26.75M（Axelar $4.67M + 此前事件）</li>
+<li><strong>端点恶意软件升级：</strong> CryptoBandits.A（USB蠕虫）+ Rokarolla（安卓木马）同周披露，PC端和移动端同时受到针对性攻击</li>
+<li><strong>签名钓鱼转向鲸鱼：</strong> Scam Sniffer数据显示1月签名钓鱼损失$6.3M（环比+200%），但受害者数下降11%，说明攻击者瞄准高净值目标</li>
+<li><strong>预测市场内幕交易频发：</strong> Polymarket一月内两起，暴露链上透明性与监管真空的矛盾</li>
+</ol>
+<h3>与ChainSentinel业务关联</h3>
+<ul>
+<li>CryptoBandits.A的剪贴板地址替换检测 → 可扩展至端点安全场景</li>
+<li>跨链桥持续被攻击 → ChainSentinel &quot;AI Agent链上独立审计&quot;的核心价值主张</li>
+<li>区块链分析工具需求增长 → 卖铲子路线验证</li>
+</ul>
+<hr>
+<h2>✅ 今日产出</h2>
+<ul>
+<li>[x] 5组关键词搜索（freshness=3天）</li>
+<li>[x] CryptoBandits.A深度调查报告</li>
+<li>[x] CryptoBandits.A X Thread草稿（7条）</li>
+<li>[x] 每日简报归档</li>
+</ul>
+<p><strong>下次关注：</strong></p>
+<ul>
+<li>CryptoBandits.A是否有更多受害者报告</li>
+<li>Rokarolla是否出现在中文安全社区</li>
+<li>Axelar Bridge攻击者地址追踪</li>
+<li>Polymarket第三起内幕交易是否出现</li>
+</ul></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>npm Web3供应链攻击调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>npm Web3供应链攻击调查报告</h1>
+<p><strong>调查日期</strong>: 2026-06-13</p>
+<p><strong>事件发现日期</strong>: 2026-06-11</p>
+<p><strong>来源</strong>: Cyfirma研究报告 + GBHackers报道</p>
+<p><strong>严重程度</strong>: 🔴 高危 — 直接影响Web3开发者基础设施</p>
+<hr>
+<h2>事件概要</h2>
+<p>Cyfirma Research于2026年6月11日发布报告，披露一场针对区块链开发者、Web3项目、加密货币钱包运营者的<strong>大规模npm供应链攻击活动</strong>。攻击者发布了11个恶意npm包，伪装为Ethereum、Coinbase Wallet、Moralis、Hardhat等知名Web3工具，累计下载量超过<strong>272万次</strong>。</p>
+<p>其中一个名为<code>moralis-sdk</code>的木马化包下载量达271万次，是此次活动中影响最大的载体。</p>
+<hr>
+<h2>攻击分类</h2>
+<h3>Cluster A: 加密凭证窃取（ethers-jss + coinbase-wallet-utils）</h3>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>发布账号</td><td>sazuki（同一账号）</td></tr>
+<tr><td>发布日期</td><td>2026-05-09</td></tr>
+<tr><td>感染方式</td><td>preinstall/postinstall生命周期钩子</td></tr>
+<tr><td>功能</td><td>拦截钱包创建/恢复操作，窃取私钥和助记词</td></tr>
+<tr><td>额外发现</td><td>ethers-jss内含<code>docker_hunter.py</code>，对Docker Hub上的区块链工具仓库进行OSINT式扫描</td></tr>
+<tr><td>总下载</td><td>ethers-jss: 311次, coinbase-wallet-utils: 185次</td></tr>
+<tr><td>C2地址</td><td>GitHub Codespaces托管</td></tr>
+</tbody></table>
+<h3>Cluster B: 木马化Moralis SDK（moralis-sdk）</h3>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>伪装方式</td><td>复制合法Moralis SDK源码和文档，2025年10月发布干净版本</td></tr>
+<tr><td>武器化时间</td><td>后续更新中加入混淆的<code>postinstall.js</code></td></tr>
+<tr><td>下载量</td><td><strong>2,717,472次</strong></td></tr>
+<tr><td>激活机制</td><td>YouTube页面作为远程激活开关</td></tr>
+<tr><td>C2机制</td><td>通过以太坊智能合约动态获取C2服务器地址</td></tr>
+<tr><td>Payload</td><td>下载并执行跨平台二进制文件（Win/Linux/macOS）</td></tr>
+<tr><td>远程C2</td><td>193[.]233[.]201[.]21:3001（调查时已离线）</td></tr>
+<tr><td>归因线索</td><td>反混淆代码中发现俄语注释和变量名</td></tr>
+</tbody></table>
+<h3>Cluster C: 区块链基础设施拼写劫持（ganach, solidty, stelar-sdk）</h3>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>运行时长</td><td>近2年未被发现</td></tr>
+<tr><td>伪装目标</td><td>Ganache、Solidity、Stellar SDK</td></tr>
+<tr><td>C2机制</td><td>以太坊主网智能合约<code>getString()</code>函数动态获取C2</td></tr>
+<tr><td>Payload分发</td><td>跨平台（node-win.exe, node-linux, node-macos）</td></tr>
+<tr><td>归因</td><td>发布账号为随机字母数字组合</td></tr>
+</tbody></table>
+<h3>Cluster D: Ethereum凭证收割+链上外泄（ethcompat账号）</h3>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>发布账号</td><td>ethcompat</td></tr>
+<tr><td>发布日期</td><td>2026-05-02（5个包同日发布）</td></tr>
+<tr><td>包名</td><td>hardhat-deploy-utils, web3-deploy-helper, defi-sdk-core, ethers-compat, ethereum-dev-utils</td></tr>
+<tr><td>总下载</td><td>2,236次</td></tr>
+<tr><td>窃取目标</td><td>.env文件、Hardhat配置、环境变量中的私钥/助记词/部署密钥</td></tr>
+<tr><td>加密方式</td><td>AES-256-GCM</td></tr>
+<tr><td>外泄通道</td><td><strong>嵌入以太坊交易data字段</strong>，发送至攻击者钱包</td></tr>
+<tr><td>接收钱包</td><td><code>0xCBbecC5E5Eb88582e6305cF6ab688f03e02Ce16f</code></td></tr>
+<tr><td>讽刺点</td><td>使用受害者自己的私钥签名并广播外泄交易，受害者承担gas费</td></tr>
+</tbody></table>
+<hr>
+<h2>关键IOCs</h2>
+<h3>以太坊地址</h3>
+<table><thead><tr><th>地址</th><th>用途</th></tr></thead><tbody>
+<tr><td><code>0xa1b40044EBc2794f207D45143Bd82a1B86156c6b</code></td><td>C2智能合约（动态基础设施获取）</td></tr>
+<tr><td><code>0x52221c293a21D8CA7AFD01Ac6bFAC7175D590A84</code></td><td>智能合约查询地址（获取C2配置）</td></tr>
+<tr><td><code>0xCBbecC5E5Eb88582e6305cF6ab688f03e02Ce16f</code></td><td>凭证外泄接收钱包</td></tr>
+</tbody></table>
+<h3>恶意包SHA256</h3>
+<table><thead><tr><th>包名</th><th>SHA256</th></tr></thead><tbody>
+<tr><td>ethers-jss</td><td>d94a2444268b339dfda2615f7800322fb318e0a484414bb17016cfcd5eb07c44</td></tr>
+<tr><td>coinbase-wallet-utils</td><td>6585ca0d3e26c20ced638f46f4a89eea924d411b8753d3fcf434663593c7cf0b</td></tr>
+<tr><td>moralis-sdk v1.0.1</td><td>17bad5ae5b2ac262f5f18854853869840245c344105aa38c7f550ef51d2e5f26</td></tr>
+<tr><td>ganach</td><td>7269c00a6164fd01dd516e0a72b2bd84c82e78feb552e06964e4992ff0479dda</td></tr>
+<tr><td>solidty</td><td>e848d73a68e4e8aea00a6257552b5872907dfaf7cce3d94636d7e59d286edeab</td></tr>
+<tr><td>stelar-sdk</td><td>2fa5b0475c3b70a3ba14c6a3938baf441a08b11841493b85e087d1d5e01eba49</td></tr>
+<tr><td>hardhat-deploy-utils</td><td>d6abc7003b580472d808b338adef0b28eacc698cd4692f76cb2a91718ab78d88</td></tr>
+<tr><td>web3-deploy-helper</td><td>bab96257018df49ace8fe8adfadc74cf8327fcf9a9dc8a3a7c9ac8e18881df5f</td></tr>
+<tr><td>defi-sdk-core</td><td>d7ec660a2a29c1aabcbe9bff1ef29be9a9fab8c7fe7c40df4772dd2b5bdf9666</td></tr>
+<tr><td>ethers-compat</td><td>5c50f79038b31aa8a3a68b24d8b783dfbd2e15fff7586c5609e544a717ef7d05</td></tr>
+<tr><td>ethereum-dev-utils</td><td>feabf10c8a9ba2775bb0f7f9d0b20203112b7df8e6d333a44d5a11eae0e38e86</td></tr>
+</tbody></table>
+<h3>基础设施</h3>
+<table><thead><tr><th>IOC</th><th>类型</th><th>用途</th></tr></thead><tbody>
+<tr><td><code>pastefy.app/RhPBKGli/raw</code></td><td>URL</td><td>Base64编码PowerShell payload托管</td></tr>
+<tr><td><code>193[.]233[.]201[.]21:3001</code></td><td>IP:Port</td><td>C2基础设施（远程payload分发）</td></tr>
+</tbody></table>
+<hr>
+<h2>攻击链时间线</h2>
+<pre><code>
+2024年中  → ganach/solidty/stelar-sdk拼写劫持包发布（潜伏近2年）
+2025-10   → moralis-sdk干净版本发布（建立信任）
+2026-05-02 → ethcompat发布5个凭证窃取包
+2026-05-09 → sazuki发布ethers-jss和coinbase-wallet-utils
+2026年中   → moralis-sdk更新加入恶意postinstall
+2026-06-11 → Cyfirma公开发布报告
+</code></pre>
+<hr>
+<h2>独特分析角度</h2>
+<h3>1. 区块链即武器 &amp; 即通道</h3>
+<p>攻击者<strong>同时</strong>使用区块链作为：</p>
+<ul>
+<li><strong>C2基础设施</strong>（通过智能合约动态获取C2地址，抗审查、抗关停）</li>
+<li><strong>数据外泄通道</strong>（将窃取凭证嵌入交易data字段，利用合法区块链传输）</li>
+<li><strong>费用转嫁</strong>（用受害者的私钥签名外泄交易，受害者自己付gas）</li>
+</ul>
+<p>这是目前已知最成熟的&quot;blockchain-native&quot;供应链攻击模式。</p>
+<h3>2. YouTube作为Kill Switch</h3>
+<p>moralis-sdk使用YouTube页面作为远程激活开关。只有检测到特定隐藏标记时才释放payload。这意味着：</p>
+<ul>
+<li>安全研究人员沙箱分析时可能不会触发</li>
+<li>攻击者可远程控制攻击节奏</li>
+<li>包本身在&quot;休眠&quot;状态下看起来完全无害</li>
+</ul>
+<h3>3. 2年潜伏的耐心</h3>
+<p>ganach/solidty/stelar-sdk三个拼写劫持包运行了近2年才被发现。这说明：</p>
+<ul>
+<li>npm生态的自动检测机制严重不足</li>
+<li>低下载量恶意包可以长期存活</li>
+<li>攻击者采用&quot;广撒网+长周期&quot;策略</li>
+</ul>
+<h3>4. 与ChainSentinel项目的直接关联</h3>
+<p>此类攻击正是ChainSentinel需要覆盖的威胁场景：</p>
+<ul>
+<li>npm供应链攻击→开发者环境被攻破→私钥/助记词泄露→链上资产被盗</li>
+<li>ChainSentinel的实时监控可在&quot;凭证被用于链上操作&quot;时触发告警</li>
+<li>这证明了&quot;开发环境安全&quot;到&quot;链上资产安全&quot;的威胁链条是真实且活跃的</li>
+</ul>
+<h3>5. 归因指向俄语区金融犯罪</h3>
+<p>反混淆代码中的俄语注释和变量名、加密货币导向的凭证窃取、利用GitHub Codespaces等免费基础设施——这些特征指向俄语区金融犯罪团伙，而非国家级APT。</p>
+<hr>
+<h2>与已知事件的关联</h2>
+<table><thead><tr><th>关联事件</th><th>模式对比</th></tr></thead><tbody>
+<tr><td><strong>TrapDoor供应链攻击（2026-06-07）</strong></td><td>34+恶意包攻击npm/PyPI/Crates.io，与本次攻击时间接近</td></tr>
+<tr><td><strong>npm&quot;沙虫&quot;维护者账户被攻陷（2026-05-25）</strong></td><td>300+包，同一时期npm生态大规模攻击</td></tr>
+<tr><td><strong>Chainalysis未验证合约报告（2026-06-09）</strong></td><td>AI+反编译工具链使攻击自动化程度提升</td></tr>
+<tr><td><strong>朝鲜UNK_DeadDrop钓鱼（近期）</strong></td><td>同样针对Web3开发者，但国家级 vs 金融犯罪</td></tr>
+</tbody></table>
+<hr>
+<h2>数据来源</h2>
+<ol>
+<li>Cyfirma Research Report: https://www.cyfirma.com/research/new-npm-supply-chain-campaign-identified-a-multi-stage-cryptocurrency-malware-with-more-than-2-7-million-downloads/</li>
+<li>GBHackers via Cybernoz: https://cybernoz.com/hackers-use-typosquatted-npm-packages-to-target-web3-projects-and-crypto-wallet-operators/</li>
+<li>Cyber Security News: https://cybersecuritynews.com/malicious-npm-campaign-steals-ssh-keys-api-tokens/</li>
+</ol>
+<hr>
+<h2>建议行动</h2>
+<ol>
+<li><strong>立即检查</strong>: 在所有开发环境中搜索11个恶意包名，检查package-lock.json</li>
+<li><strong>凭证轮换</strong>: 如果任何环境安装过这些包，立即轮换所有私钥、助记词、API Key</li>
+<li><strong>链上监控</strong>: 监控<code>0xCBbecC5E5Eb88582e6305cF6ab688f03e02Ce16f</code>地址的链上活动（外泄数据）</li>
+<li><strong>智能合约分析</strong>: 分析<code>0xa1b40044EBc2794f207D45143Bd82a1B86156c6b</code>获取C2地址列表</li>
+<li><strong>X推文发布</strong>: 此事件高度适合ZachXBT风格的开发者安全教育内容</li>
+</ol>
+<hr>
+<p><em>调查时间: 2026年6月13日 16:04-16:30</em></p>
+<p><em>调查者: onchain-shadow</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

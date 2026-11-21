@@ -1,0 +1,168 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THORChain $10.7M Proposer-Forgery Attack Investigation Report</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>THORChain $10.7M Proposer-Forgery Attack Investigation Report</h1>
+<p><strong>Date of Incident:</strong> May 30, 2026</p>
+<p><strong>Total Loss:</strong> ~$10.7 million USD</p>
+<p><strong>Affected Assets:</strong> Ethereum, Bitcoin, BNB Chain vault funds</p>
+<p><strong>Network:</strong> THORChain (Cross-Chain)</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>On May 30, 2026, THORChain suffered a $10.7 million exploit targeting its cross-chain vault transfer mechanism. The attack exploited a <strong>proposer-forgery bug</strong> in THORChain&#x27;s Bifrost Attestation Gossip system, allowing attackers to intercept and modify inbound deposit observations into fraudulent outbound payment requests.</p>
+<p><strong>The most alarming detail:</strong> THORChain developers had already developed a fix for this exact vulnerability, which would have prevented the attack. The fix was scheduled for deployment earlier in May, but the automated testing and distribution system failed to implement it.</p>
+<p>This represents a case of <strong>operational failure rather than technical failure</strong>—the security knowledge existed, the fix was ready, but deployment infrastructure let the protocol down.</p>
+<hr>
+<h2>Attack Vector Analysis</h2>
+<h3>Technical Mechanism</h3>
+<p><strong>Vulnerability:</strong> Proposer-forgery bug in THORChain&#x27;s Bifrost Attestation Gossip</p>
+<p>The Bifrost protocol enables cross-chain communication within THORChain. The vulnerability existed in how validators observe and attest to transactions:</p>
+<ol>
+<li><strong>Normal Flow:</strong></li>
+</ol>
+<ul>
+<li>Users deposit assets into THORChain vaults</li>
+<li>Validators observe the inbound deposit</li>
+<li>Validators collectively approve outbound withdrawals</li>
+<li>Funds are released from shared vaults</li>
+</ul>
+<ol>
+<li><strong>Attack Flow:</strong></li>
+</ol>
+<ul>
+<li>Attacker initiates legitimate inbound deposit</li>
+<li>Attacker intercepts the inbound observation</li>
+<li>Modifies observation into fake outbound payment request</li>
+<li><strong>Critical flaw:</strong> Validator signatures did not cover the inbound/outbound bit</li>
+<li>This allowed proposers to &quot;flip&quot; a real inbound observation into a fraudulent outbound instruction</li>
+<li>Validators approved what appeared to be legitimate withdrawal</li>
+<li>Funds drained to attacker-controlled addresses across ETH, BTC, and BNB</li>
+</ul>
+<h3>The Preventable Failure</h3>
+<p>According to Blockaid&#x27;s analysis:</p>
+<p>&gt; &quot;Blockaid says Thorchain developers had already developed a fix for this specific vulnerability, which would have thwarted the attack. The fix was meant to be implemented earlier this month, but the automated system that tests and distributes software updates on Thorchain reportedly failed.&quot;</p>
+<p>This is a critical lesson in DeFi security: <strong>knowing about a vulnerability and having a fix is meaningless if deployment infrastructure fails.</strong></p>
+<hr>
+<h2>Market Impact</h2>
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+<tr><td>RUNE Price (Pre-Attack)</td><td>$0.585</td></tr>
+<tr><td>RUNE Price (2hr Post-Attack)</td><td>$0.501 (-14%)</td></tr>
+<tr><td>RUNE Price (Press Time)</td><td>$0.514</td></tr>
+<tr><td>Protocol TVL Impact</td><td>Significant</td></tr>
+</tbody></table>
+<p>The RUNE token experienced an immediate 14% dip following public disclosure of the exploit.</p>
+<hr>
+<h2>THORChain&#x27;s Controversial Role in the Ecosystem</h2>
+<h3>A Platform Built to Avoid Bridges—Now Critical to Bridge Hackers</h3>
+<p>THORChain was architecturally designed to enable native cross-chain swaps without the security risks associated with wrapped tokens or bridge protocols. The irony is profound:</p>
+<p><strong>In the KelpDAO $292M exploit (April 2026), the hacker used THORChain as the primary laundering route for stolen funds.</strong></p>
+<p>According to Chainalysis and TRM Labs data:</p>
+<ul>
+<li>THORChain processed the majority of laundering volume from both the Bybit ($1.5B, February 2025) and KelpDAO ($292M, April 2026) hacks</li>
+<li>The protocol&#x27;s operators have publicly refused to consider freezing or screening transactions, treating any such intervention as contrary to decentralization principles</li>
+</ul>
+<h3>North Korea&#x27;s Preferred Laundering Infrastructure</h3>
+<p>The crypto.news investigation detailed how THORChain has become a load-bearing pillar of the laundering pipeline used by North Korea&#x27;s Lazarus Group:</p>
+<ol>
+<li>Stolen ETH swapped into BTC or stablecoins</li>
+<li>Routed through cross-chain bridges (including THORChain) for obfuscation</li>
+<li>Further routed through Russian crypto exchanges and Chinese OTC desks</li>
+<li>Converted to fiat and channeled into procurement networks</li>
+</ol>
+<p><strong>The uncomfortable truth:</strong> THORChain&#x27;s principled stance on decentralization and non-custodial operation has made it the preferred infrastructure for state-sponsored cryptocurrency theft.</p>
+<hr>
+<h2>Historical Attack Context</h2>
+<p>THORChain has a documented history of security incidents:</p>
+<table><thead><tr><th>Date</th><th>Attack</th><th>Loss</th></tr></thead><tbody>
+<tr><td>July 2021</td><td>Multiple exploits (days apart)</td><td>~$15 million</td></tr>
+<tr><td>Various</td><td>Ongoing exploits</td><td>Over $8 million total (2021)</td></tr>
+<tr><td>April 2026</td><td>KelpDAO hacker used THORChain for laundering</td><td>$292M laundered</td></tr>
+<tr><td>May 30, 2026</td><td>Proposer-forgery vault drain</td><td>$10.7 million</td></tr>
+</tbody></table>
+<p>Total historical losses from THORChain-related incidents exceed $15 million in direct exploits, with the protocol now processing hundreds of millions in state-sponsored hacking proceeds.</p>
+<hr>
+<h2>The Automation Failure Problem</h2>
+<h3>What Went Wrong</h3>
+<p>The THORChain exploit exposes a critical vulnerability in how DeFi protocols manage security updates:</p>
+<ol>
+<li><strong>Developer Response:</strong> Fix was identified, code written, ready for deployment</li>
+<li><strong>Scheduled Deployment:</strong> Meant to be implemented earlier in May</li>
+<li><strong>System Failure:</strong> Automated CI/CD pipeline for testing and distributing updates failed</li>
+<li><strong>Result:</strong> Fix never reached production validators, exploit succeeded</li>
+</ol>
+<h3>Lessons for DeFi Security</h3>
+<p>This incident highlights three systemic issues:</p>
+<ol>
+<li><strong>Over-reliance on automation:</strong> Critical security patches cannot depend entirely on automated systems without human oversight</li>
+</ol>
+<ol>
+<li><strong>The deployment gap:</strong> Security fixes in staging are useless if production infrastructure fails to receive them</li>
+</ol>
+<ol>
+<li><strong>Defense in depth failure:</strong> Multiple layers (code review ✓, fix development ✓, deployment automation ✗) must all succeed</li>
+</ol>
+<p>As OpenZeppelin founder Manuel Aráoz noted:</p>
+<p>&gt; &quot;I now consider <em>all</em> of DeFi unsafe,&quot; citing AI&#x27;s growing ability to identify smart contract vulnerabilities—and by extension, the industry&#x27;s inability to rapidly deploy fixes.</p>
+<hr>
+<h2>Data Sources</h2>
+<ul>
+<li>Blockaid Security Analysis</li>
+<li>Arkham Intelligence</li>
+<li>crypto.news Investigation Report</li>
+<li>Chainalysis / TRM Labs Attribution Data</li>
+</ul>
+<hr>
+<h2>Investigator Commentary</h2>
+<p>The THORChain $10.7M exploit is not a story about a clever hacker finding an unknown vulnerability. It is a story about <strong>organizational failure</strong> in the face of known risk.</p>
+<p>The attacker&#x27;s technique—proposer-forgery in the Bifrost attestation layer—was understood by THORChain&#x27;s own developers. A fix existed. The vulnerability had a name, a description, and a remediation. What failed was the operational machinery between &quot;fix ready&quot; and &quot;fix deployed.&quot;</p>
+<p>This has implications for the entire DeFi industry:</p>
+<ol>
+<li><strong>Security is not just about code audits.</strong> It&#x27;s about deployment pipelines, update mechanisms, and fail-safes.</li>
+</ol>
+<ol>
+<li><strong>Automation must have human oversight.</strong> The most sophisticated smart contract security is worthless if your CI/CD pipeline silently fails.</li>
+</ol>
+<ol>
+<li><strong>THORChain&#x27;s ideological stance creates systemic risk.</strong> Their refusal to screen transactions is consistent with stated principles—and also makes them complicit in state-sponsored terrorism funding, whether intended or not.</li>
+</ol>
+<p>The uncomfortable question that the DeFi industry needs to answer: <strong>Can protocols that refuse to implement basic AML/KYC controls on their infrastructure claim to be &quot;just following the technology&quot;?</strong></p>
+<p>At what point does principled decentralization become willful blindness?</p>
+<hr>
+<p><strong>Investigator: Onchain Shadow</strong></p>
+<p><strong>Report Date:</strong> May 30, 2026</p>
+<p><em>Disclaimer: This report is based on publicly available on-chain data and media reports for security research purposes only.</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

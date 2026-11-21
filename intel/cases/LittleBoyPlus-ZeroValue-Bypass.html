@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Little Boy Plus (BSC) 零值授权绕过漏洞攻击调查</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Little Boy Plus (BSC) 零值授权绕过漏洞攻击调查</h1>
+<p><strong>调查日期</strong>: 2026-06-23</p>
+<p><strong>事件日期</strong>: 2026-06-18</p>
+<p><strong>损失</strong>: ~610.5 BNB (~$377,642 USDT)</p>
+<p><strong>攻击链</strong>: BSC</p>
+<p><strong>状态</strong>: 已完成初步分析</p>
+<hr>
+<h2>事件概述</h2>
+<p>2026年6月18日，BSC链上DeFi挖矿协议Little Boy Plus遭受攻击，损失约610.5 BNB（约$377K USDT）。攻击者利用合约中零值<code>transferFrom</code>调用绕过OpenZeppelin授权检查的漏洞，通过凭空铸造LBP代币破坏PancakeSwap流动性池定价，随后提取池中全部USDT。</p>
+<h2>技术漏洞分析</h2>
+<h3>漏洞根源：零值transferFrom绕过授权检查</h3>
+<p><strong>漏洞合约</strong>: <code>0x5e3c…85fe</code> (LBPHashrate)</p>
+<p><strong>核心问题</strong>: <code>LBPHashrate._update()</code>函数可被零值的<code>transferFrom</code>调用触发，而OpenZeppelin的ERC20实现在<code>transferFrom</code>金额为0时，不检查allowance即可成功执行。</p>
+<p><strong>攻击路径</strong>:</p>
+<pre><code>
+Step 1: 攻击者调用 LBPHashrate.transferFrom(pair, DEAD, 0)
+        ↓ 零值转账绕过OpenZeppelin授权检查
+Step 2: _update() 被触发 → 调用 _harvest(pair)
+        ↓ 
+Step 3: _harvest() 调用 LBP.mintReward(pair, reward)
+        ↓ 向PancakeSwap流动性池地址铸造LBP代币
+Step 4: 铸造的LBP增加了池的账面余额，但未增加实际储备
+        ↓ 池内价格失衡
+Step 5: 攻击者调用 PancakePair.swap() 提取全部USDT
+</code></pre>
+<h3>漏洞本质</h3>
+<p>这是一个<strong>ERC20标准实现的边缘案例</strong>与<strong>业务逻辑缺陷</strong>的组合：</p>
+<ol>
+<li><strong>ERC20层面</strong>: OpenZeppelin的<code>transferFrom</code>在amount=0时不检查allowance，这在大多数场景下是合理的（零值转账不应消耗授权额度）</li>
+<li><strong>业务逻辑层面</strong>: <code>LBPHashrate._update()</code>函数被设计为通过<code>transferFrom</code>事件触发，但没有验证转账金额是否为有效值</li>
+<li><strong>结果</strong>: 零值转账触发了奖励铸造，凭空创造的代币打破了流动性池的定价平衡</li>
+</ol>
+<h3>关键洞察</h3>
+<p>这类漏洞在DeFi协议中极为常见：<strong>将合约间通信建立在代币转账事件上，但未验证转账的有效性（金额、来源、意图）</strong>。</p>
+<h2>攻击时间线</h2>
+<table><thead><tr><th>时间</th><th>事件</th></tr></thead><tbody>
+<tr><td>2026-06-18</td><td>攻击者发现零值transferFrom可触发_update()</td></tr>
+<tr><td>2026-06-18</td><td>攻击者执行零值transferFrom → 触发铸造 → 提取USDT</td></tr>
+<tr><td>2026-06-18</td><td>损失约610.5 BNB (~$377K)</td></tr>
+<tr><td>2026-06-18</td><td>慢雾科技发布攻击分析</td></tr>
+</tbody></table>
+<h2>损失明细</h2>
+<table><thead><tr><th>资产</th><th>数量</th><th>价值(USD)</th></tr></thead><tbody>
+<tr><td>BNB</td><td>610.5</td><td>~$377,642</td></tr>
+</tbody></table>
+<h2>与其他事件的关联模式</h2>
+<p>Little Boy Plus攻击与本月其他事件共享一个特征：<strong>利用验证逻辑的边缘案例</strong>。</p>
+<table><thead><tr><th>事件</th><th>漏洞类型</th><th>共同模式</th></tr></thead><tbody>
+<tr><td>Little Boy Plus</td><td>零值转账绕过授权</td><td>未验证输入的有效性边界</td></tr>
+<tr><td>Taiko L2</td><td>伪造桥接证明</td><td>未验证证明的合法性</td></tr>
+<tr><td>Secret-Axelar</td><td>无限铸造</td><td>未验证通道上下文</td></tr>
+<tr><td>Axelar-SquidRouter</td><td>跨链消息伪造</td><td>未验证消息来源</td></tr>
+</tbody></table>
+<p><strong>趋势</strong>: 攻击者正系统性地寻找协议中&quot;看似安全但存在边缘案例&quot;的验证逻辑。</p>
+<h2>防护建议</h2>
+<ol>
+<li><strong>协议开发者</strong>: 对所有通过事件/回调触发的函数，验证输入参数的有效性（金额 &gt; 0、来源合法）</li>
+<li><strong>DeFi用户</strong>: 关注协议是否仍活跃维护，长期无更新的协议风险更高</li>
+<li><strong>审计方</strong>: 将零值转账作为标准测试用例纳入审计范围</li>
+</ol>
+<h2>数据来源</h2>
+<ul>
+<li>慢雾科技 (SlowMist) 攻击分析</li>
+<li>ChainCatcher 报道</li>
+<li>Foresight News 监测数据</li>
+<li>Gate News 安全简报</li>
+</ul>
+<h2>OPSEC声明</h2>
+<p>本调查仅基于公开来源信息，不涉及任何隐私数据或非法获取的信息。所有链上地址均来自公开安全报告。</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CWU Token On-Chain Investigation Report</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>CWU Token On-Chain Investigation Report</h1>
+<h2>🚨 Case Summary</h2>
+<p><strong>Token Name</strong>: Commonwealth (CWU)</p>
+<p><strong>Blockchain</strong>: Solana</p>
+<p><strong>Contract Address</strong>: <code>CmVUoJUt7hMGc9ze7s8zYdnA7enMfCAFdQCggxcbACWU</code></p>
+<p><strong>Investigation Date</strong>: 2026-05-27</p>
+<p><strong>Risk Level</strong>: 🔴 Extremely High — Classic Slow-Motion Rug Pull</p>
+<p><strong>Current Status</strong>: Insiders still dumping; 85% of supply controlled by associated wallets</p>
+<hr>
+<h2>📊 Key Metrics</h2>
+<table><thead><tr><th>Metric</th><th>Project Claim</th><th>On-Chain Reality</th><th>Discrepancy</th></tr></thead><tbody>
+<tr><td>Circulation Ratio</td><td>90% &quot;in circulation&quot;</td><td>10-15% actual circulation</td><td><strong>75-80% gap</strong></td></tr>
+<tr><td>Project Treasury</td><td>10%</td><td>85-90% in associated wallets</td><td><strong>8-9x inflated</strong></td></tr>
+<tr><td>Holder Distribution</td><td>Wide distribution</td><td>200+ new wallets batch-claiming</td><td><strong>Single entity control</strong></td></tr>
+<tr><td>Insider Dumping</td><td>Undisclosed</td><td>~$600,000 already sold</td><td><strong>Ongoing</strong></td></tr>
+</tbody></table>
+<h3>Price Trajectory (CoinGecko Real-Time Data, 2026-05-27)</h3>
+<ul>
+<li><strong>Current Price</strong>: $0.02425 (24h +37.6%)</li>
+<li><strong>ATH</strong>: $0.03663 (2026-04-14)</li>
+<li><strong>ATL</strong>: $0.01141 (2026-04-10)</li>
+<li><strong>Market Cap</strong>: $21,836,596 (#801)</li>
+<li><strong>FDV</strong>: $24,249,481</li>
+<li><strong>24h Volume</strong>: $2,519,129 (+307%)</li>
+<li><strong>Primary Exchange</strong>: Meteora DAMM V2 (CWU/SOL, 100% volume)</li>
+<li><strong>⚠️ Rugcheck.xyz Warning</strong>: &quot;Risk of market manipulation with significant token concentration in one or more unidentified wallets&quot;</li>
+<li><strong>Trend</strong>: Short-term bounce, but continuous insider selling; long-term pressure</li>
+</ul>
+<hr>
+<h2>🔍 On-Chain Evidence Chain</h2>
+<h3>1. Supply Concentration (Bubblemaps Analysis)</h3>
+<p>From <a href="https://intel.bubblemaps.io/cases/96/bundled-supply-in-cwu">Bubblemaps Case Analysis</a>:</p>
+<ul>
+<li><strong>200+ newly created wallets</strong> were batch-funded around token launch</li>
+<li>These wallets <strong>simultaneously claimed the vast majority of CWU supply</strong></li>
+<li>Inter-wallet transfers and connections indicate they are <strong>controlled by a single entity or coordinated organization</strong></li>
+<li>These associated wallets currently hold approximately <strong>85-90% of total supply</strong></li>
+</ul>
+<h3>2. Insider Dumping Pattern</h3>
+<p>Bubblemaps real-time monitoring:</p>
+<ul>
+<li>Associated address cluster has sold approximately <strong>$600,000</strong> in CWU tokens</li>
+<li>Dumping occurred during price increases (classic &quot;sell into strength&quot; strategy)</li>
+<li>After dumping, still control <strong>85% of supply</strong>, meaning massive inventory remains available</li>
+</ul>
+<h3>3. Marketing Claims vs. On-Chain Reality</h3>
+<p><strong>CWU Official Statement</strong>:</p>
+<p>&gt; &quot;90% of the token&#x27;s total supply is &#x27;in circulation&#x27; and only 10% is reserved for the project treasury&quot;</p>
+<p><strong>On-Chain Reality</strong>:</p>
+<p>&gt; 200+ associated wallets control 87-90% of supply; truly free-floating tokens only 10-15%</p>
+<p>This is a <strong>textbook false statement</strong> — the project distributed to 200+ wallets to create the illusion of &quot;wide ownership,&quot; while a single entity maintains control.</p>
+<hr>
+<h2>🏛️ Political Endorsement Risk</h2>
+<h3>John Agyekum Kufuor&#x27;s Role</h3>
+<ul>
+<li>Ghana&#x27;s 10th President (2001-2009)</li>
+<li>Described as &quot;Official Advisor&quot; in CWU marketing materials</li>
+<li>MEXC exchange listing states CWU &quot;registered under the endorsement of John Agyekum Kufuor&quot;</li>
+<li>This political endorsement grants the token <strong>false legitimacy</strong>, attracting retail investors</li>
+</ul>
+<h3>Dangerous Combination: Political Endorsement × Memecoin</h3>
+<ol>
+<li><strong>Trust Transfer</strong>: Retail investors assume &quot;implicit backing&quot; from a former head of state</li>
+<li><strong>Regulatory Vacuum</strong>: Political figure endorsements of crypto projects lack clear regulation in many jurisdictions</li>
+<li><strong>Cross-Border Complexity</strong>: Ghanaian politician + Solana chain + global traders = jurisdictional chaos</li>
+<li><strong>Deniability</strong>: Kufuor can claim &quot;just an advisor,&quot; disclaiming responsibility for investment losses</li>
+</ol>
+<h3>Key Unanswered Questions</h3>
+<ul>
+<li>Did Kufuor <strong>actually receive</strong> CWU tokens or fiat payment?</li>
+<li>Was Kufuor <strong>aware</strong> of the 200+ wallet concentration?</li>
+<li>Could the former president&#x27;s name be <strong>misused</strong>?</li>
+</ul>
+<hr>
+<h2>🧩 Rug Pull Mechanics Breakdown</h2>
+<h3>Phase 1: Preparation (Pre-Launch)</h3>
+<ul>
+<li>Create 200+ new wallets</li>
+<li>Fund in batches (avoid single large transfer triggering alerts)</li>
+<li>Prepare marketing materials (political endorsement, MEXC listing narrative)</li>
+</ul>
+<h3>Phase 2: Launch</h3>
+<ul>
+<li>200+ wallets simultaneously claim vast majority of supply</li>
+<li>Create illusion of &quot;fair distribution&quot;</li>
+<li>Use political endorsement to attract retail entry</li>
+</ul>
+<h3>Phase 3: Pump</h3>
+<ul>
+<li>Extremely low float (85% locked in associated wallets) → scarcity drives price up</li>
+<li>Market cap surges from $0 to $120M</li>
+<li>Exchange listings (MEXC, etc.) add liquidity</li>
+</ul>
+<h3>Phase 4: Dump — Current Phase</h3>
+<ul>
+<li>Associated wallets continuously dump at price highs</li>
+<li>Already cashed out ~$600,000</li>
+<li>Still hold 85% supply, can continue dumping</li>
+<li>32% decline is just the beginning</li>
+</ul>
+<h3>Phase 5: Crash — Predicted</h3>
+<ul>
+<li>When insiders complete exit, price approaches zero</li>
+<li>Retail investors lose everything</li>
+<li>Project may deny association with wallets</li>
+</ul>
+<hr>
+<h2>⚠️ Risk Assessment</h2>
+<table><thead><tr><th>Risk Dimension</th><th>Score</th><th>Explanation</th></tr></thead><tbody>
+<tr><td>Rug Pull Risk</td><td>🔴 10/10</td><td>85% supply concentration + continuous dumping</td></tr>
+<tr><td>False Statement Risk</td><td>🔴 9/10</td><td>&quot;90% circulating&quot; vs actual 10-15%</td></tr>
+<tr><td>Political Endorsement Misuse</td><td>🟡 7/10</td><td>Former president&#x27;s endorsement potentially abused</td></tr>
+<tr><td>Regulatory Recourse</td><td>🟡 5/10</td><td>Cross-border + anonymous team = enforcement difficulty</td></tr>
+<tr><td>Retail Loss Risk</td><td>🔴 10/10</td><td>85% supply can crash price at any time</td></tr>
+</tbody></table>
+<hr>
+<h2>🔬 Next Steps for Deep Investigation (Pending API Key)</h2>
+<ul>
+<li>[ ] Trace funding sources of 200+ associated wallets (Solana RPC)</li>
+<li>[ ] Identify funding patterns and timeline of associated wallets</li>
+<li>[ ] Track post-dumping fund destinations (CEX? Mixer?)</li>
+<li>[ ] Analyze whether Kufuor directly received CWU tokens</li>
+<li>[ ] Contact MEXC exchange to confirm CWU listing review process</li>
+<li>[ ] Compare patterns with other politically-endorsed memecoins</li>
+</ul>
+<hr>
+<h2>📝 Information Sources</h2>
+<ol>
+<li><a href="https://intel.bubblemaps.io/cases/96/bundled-supply-in-cwu">Bubblemaps CWU Case Analysis</a></li>
+<li><a href="https://crypto.news/ghana-ex-president-linked-cwu-token-accused-of-rug-pull-as-insiders-dump-still-hold-85/">Crypto.news Report</a> (2026-05-26)</li>
+<li><a href="https://bitcoinworld.co.in/cwu-token-rug-pull-allegations-bubblemaps/">Bitcoinworld Report</a> (2026-05-26)</li>
+<li><a href="https://www.coincarp.com/currencies/commonwealth/">CoinCarp CWU Data</a></li>
+<li>Bubblemaps X Post: <a href="https://twitter.com/bubblemaps/status/2059277036779356587">@bubblemaps 2026-05-26</a></li>
+</ol>
+<hr>
+<p><em>This report is for research and educational purposes only and does not constitute investment advice. On-chain data is based on publicly available information; conclusions require further verification.</em></p>
+<p>Investigator: Onchain Shadow</p>
+<p>Disclaimer: This report is based on publicly available on-chain data and media reports for security research purposes only.</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

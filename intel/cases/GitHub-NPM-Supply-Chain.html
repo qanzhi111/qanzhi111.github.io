@@ -1,0 +1,206 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub NPM Supply Chain Attack - Investigation Report</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>GitHub NPM Supply Chain Attack - Investigation Report</h1>
+<p><strong>Date:</strong> May 29, 2026</p>
+<p><strong>Case ID:</strong> ONCHAIN-2026-0529-002</p>
+<p><strong>Threat Names:</strong> Megalodon, Mini Shai-Hulud</p>
+<p><strong>Status:</strong> Active - Ongoing Crisis</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>A massive supply chain attack campaign dubbed &quot;Megalodon&quot; and &quot;Mini Shai-Hulud&quot; is targeting GitHub tokens and NPM packages. Malicious code injected into npm packages steals developers&#x27; GitHub Personal Access Tokens (PATs), allowing attackers to:</p>
+<ul>
+<li>Access private repositories</li>
+<li>Steal API keys and secrets</li>
+<li>Inject malicious code into legitimate projects</li>
+<li>Drain Web3/DeFi user wallets through compromised front-ends</li>
+</ul>
+<p><strong>Impact:</strong> Affects Grafana Labs, GitHub itself, and thousands of open-source projects with millions of daily downloads.</p>
+<hr>
+<h2>Threat Timeline</h2>
+<table><thead><tr><th>Date</th><th>Event</th></tr></thead><tbody>
+<tr><td>Late May 2026</td><td>Security researchers discover attack campaign</td></tr>
+<tr><td>May 27-28, 2026</td><td>Internet buzz reaches maximum levels</td></tr>
+<tr><td>Ongoing</td><td>New variants appearing every few hours</td></tr>
+</tbody></table>
+<hr>
+<h2>Attack Chain Analysis</h2>
+<h3>Step 1: Initial Compromise</h3>
+<pre><code>
+Malicious NPM Package → Developer Downloads → Trojan Activates
+</code></pre>
+<p>Attackers inject trojan code into popular npm packages. When developers install or update these packages, the hidden malware activates silently on their computers.</p>
+<h3>Step 2: Token Harvest</h3>
+<p>The trojan specifically searches for:</p>
+<ul>
+<li>GitHub Personal Access Tokens (PATs)</li>
+<li>Browser-stored credentials</li>
+<li>IDE/saved passwords</li>
+</ul>
+<h3>Step 3: Automated Exploitation</h3>
+<p>Once a token is stolen, automated bot scripts:</p>
+<ol>
+<li>Log into victim&#x27;s GitHub account immediately</li>
+<li>Bypass 2FA/authentication</li>
+<li>Inject same trojan into all managed repositories</li>
+<li>Spread across thousands of projects in hours</li>
+</ol>
+<h3>Step 4: Downstream Attack</h3>
+<p>Compromised repositories lead to:</p>
+<ul>
+<li>Malicious website code updates</li>
+<li>Fake &quot;Connect Wallet&quot; buttons</li>
+<li>Phishing smart contracts</li>
+<li>Mass wallet draining of end users</li>
+</ul>
+<hr>
+<h2>Technical Details</h2>
+<h3>Why GitHub Tokens Are Valuable</h3>
+<table><thead><tr><th>Capability</th><th>Without Token</th><th>With Token</th></tr></thead><tbody>
+<tr><td>2FA Required</td><td>Yes</td><td>No</td></tr>
+<tr><td>Password Required</td><td>Yes</td><td>No</td></tr>
+<tr><td>Access Private Repos</td><td>No</td><td>Yes</td></tr>
+<tr><td>Push Malicious Code</td><td>No</td><td>Yes</td></tr>
+<tr><td>Steal API Keys</td><td>Difficult</td><td>Instant</td></tr>
+</tbody></table>
+<h3>Attack Speed</h3>
+<ul>
+<li>Traditional hack: Days to weeks</li>
+<li>This attack: Hours to days</li>
+<li>Automated propagation infects thousands of repos in 24 hours</li>
+</ul>
+<hr>
+<h2>Confirmed Victims</h2>
+<h3>Enterprise Platforms</h3>
+<ol>
+<li><strong>Grafana Labs</strong> - Internal code stolen</li>
+<li><strong>GitHub</strong> - Internal systems compromised</li>
+<li><strong>Multiple enterprise platforms</strong> - Under investigation</li>
+</ol>
+<h3>Open Source Impact</h3>
+<ul>
+<li>Thousands of independent developers affected</li>
+<li>Millions of daily downloads potentially compromised</li>
+<li>GitHub audit logs show suspicious midnight commits</li>
+<li>npm registry deleting malicious packages (but new variants every few hours)</li>
+</ul>
+<hr>
+<h2>Web3/DeFi Specific Risk</h2>
+<h3>Why Crypto Is Extra Vulnerable</h3>
+<ol>
+<li><strong>Heavy npm dependency:</strong> DEX, DeFi, and meme coin websites rely heavily on public npm packages</li>
+<li><strong>Small teams:</strong> Limited security audit capabilities</li>
+<li><strong>Irreversible transactions:</strong> One bad signature = total wallet loss</li>
+<li><strong>Anonymity:</strong> Attack attribution is difficult</li>
+</ol>
+<h3>Attack Surface for Web3 Users</h3>
+<pre><code>
+User visits crypto website 
+→ Website uses compromised npm package
+→ Developer token was stolen
+→ Malicious code pushed to production
+→ &quot;Connect Wallet&quot; button now drains wallet
+→ User clicks → Wallet emptied
+</code></pre>
+<hr>
+<h2>Community Response</h2>
+<h3>Industry Actions</h3>
+<ol>
+<li><strong>GitHub Security:</strong> Tracking known hacker IP addresses</li>
+<li><strong>npm Registry:</strong> Working around clock to delete malicious packages</li>
+<li><strong>Major tech firms:</strong> Advising employees to stop installing unverified updates</li>
+<li><strong>Security firms:</strong> Emergency response mode</li>
+</ol>
+<h3>Developer Warnings</h3>
+<ul>
+<li>Check GitHub audit logs for unauthorized commits</li>
+<li>Run <code>npm audit</code> on all projects</li>
+<li>Look for unknown background processes sending data externally</li>
+<li>Revoke ALL active GitHub PATs immediately</li>
+<li>Change main account passwords</li>
+<li>Alert community if project may be compromised</li>
+</ul>
+<hr>
+<h2>Mitigation Recommendations</h2>
+<h3>For Developers</h3>
+<ol>
+<li>✅ Review GitHub audit logs immediately</li>
+<li>✅ Scan code with <code>npm audit</code> or specialized tools</li>
+<li>✅ Check for unauthorized midnight commits</li>
+<li>✅ Monitor for unknown external data connections</li>
+<li>✅ <strong>Revoke ALL GitHub PATs</strong> - regenerate new ones</li>
+<li>✅ Use environment variables, never hardcode secrets</li>
+<li>✅ Enable 2FA on all accounts</li>
+</ol>
+<h3>For Crypto Users</h3>
+<ol>
+<li>✅ Use hardware wallets for significant holdings</li>
+<li>✅ Verify website URLs carefully before connecting</li>
+<li>✅ Check project&#x27;s social media for security announcements</li>
+<li>✅ Don&#x27;t trust &quot;Connect Wallet&quot; buttons on meme coin sites</li>
+<li>✅ Use reputable platforms when possible</li>
+<li>✅ Consider CEX for trading until supply chain stabilizes</li>
+</ol>
+<hr>
+<h2>Industry Expert Opinion</h2>
+<h3>OpenZeppelin Founder&#x27;s Warning</h3>
+<p>Manuel Aráoz, co-founder of OpenZeppelin, stated:</p>
+<p>&gt; &quot;I now consider <em>all</em> of DeFi unsafe. Coding agents are superhuman at finding vulnerabilities, and smart contract security is too asymmetric: defenders need to fix every bug while attackers need just one exploit to steal funds.&quot;</p>
+<p>He reportedly advised friends and family to pull funds from Aave, MakerDAO, and Compound.</p>
+<hr>
+<h2>Conclusion</h2>
+<p>The Megalodon/Mini Shai-Hulud supply chain attack represents a significant escalation in Web3 security threats. Unlike traditional smart contract exploits, this attack vector:</p>
+<ul>
+<li>Exploits human/developer security</li>
+<li>Circumvents all technical safeguards</li>
+<li>Has massive blast radius</li>
+<li>Spreads autonomously</li>
+</ul>
+<p><strong>Key Takeaway:</strong> Web3 security is no longer just about smart contract audits. The entire development infrastructure - from developer machines to npm packages to GitHub - is now an attack surface.</p>
+<hr>
+<h2>Data Sources</h2>
+<ul>
+<li>WEEX Security Report (https://www.weex7.com/wiki/article/github-token-leak-and-npm-malware-what-web3-traders-need-to-know)</li>
+<li>Industry security researchers</li>
+<li>GitHub/npm official statements</li>
+</ul>
+<hr>
+<p><em>Investigation conducted by on-chain-shadow</em></p>
+<p><em>Report generated: May 29, 2026</em></p>
+<p><em>GitHub Pages: https://onchain-shadow.github.io/on-chain-investigations/</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

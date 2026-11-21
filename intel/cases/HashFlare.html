@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HashFlare 沉寂资金异动调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>HashFlare 沉寂资金异动调查报告</h1>
+<p><strong>报告日期：2026-06-30</strong></p>
+<p><strong>分析师：ChainSentinel</strong></p>
+<p><strong>事件分类：庞氏骗局关联地址洗钱追踪</strong></p>
+<hr>
+<h2>一、事件概述</h2>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td><strong>事件名称</strong></td><td>HashFlare 庞氏骗局关联地址沉寂3.5年后异动</td></tr>
+<tr><td><strong>异动时间</strong></td><td>2026年6月（距上次活动约3.5年）</td></tr>
+<tr><td><strong>异动金额</strong></td><td>10,600 ETH（约1,850万美元）</td></tr>
+<tr><td><strong>原骗局规模</strong></td><td>5.75亿美元（HashFlare庞氏骗局总规模）</td></tr>
+<tr><td><strong>洗钱手法</strong></td><td>通过HiFiSwap + Near Protocol 意图功能兑换BTC</td></tr>
+<tr><td><strong>案犯状态</strong></td><td>主犯已认罪并上缴资产</td></tr>
+</tbody></table>
+<hr>
+<h2>二、背景信息</h2>
+<h3>HashFlare庞氏骗局</h3>
+<p>HashFlare是一家自称提供云挖矿服务的公司，运营期间（2015-2019）通过承诺高回报的比特币、以太坊挖矿合约，吸纳大量投资者资金。</p>
+<p><strong>关键时间线：</strong></p>
+<ul>
+<li>2015-2019：运营云挖矿服务，大量吸金</li>
+<li>2019年：用户投诉无法提款，平台开始限制提现</li>
+<li>后续：爱沙尼亚警方介入调查，主犯认罪</li>
+</ul>
+<h3>沉寂地址异动</h3>
+<p>该关联钱包地址在沉寂约3.5年后，于2026年6月突然转出10,600 ETH（约1,850万美元），通过以下路径进行洗钱：</p>
+<pre><code>
+关联钱包 → HiFiSwap → Near Protocol 意图功能 → BTC
+</code></pre>
+<hr>
+<h2>三、洗钱路径分析</h2>
+<h3>步骤1：链上转账</h3>
+<ul>
+<li>关联钱包将10,600 ETH转出</li>
+<li>时间戳：2026年6月</li>
+</ul>
+<h3>步骤2：HiFiSwap跨链兑换</h3>
+<ul>
+<li>HiFiSwap是基于Near Protocol的跨链DEX</li>
+<li>支持ETH与BTC之间的跨链兑换</li>
+</ul>
+<h3>步骤3：Near Protocol意图功能</h3>
+<ul>
+<li>Near Protocol的意图（Intent）系统允许用户表达交易结果意图</li>
+<li>合约自动匹配最佳路径执行交易</li>
+<li>这种方式增加了链上追踪难度</li>
+</ul>
+<h3>步骤4：最终兑换为BTC</h3>
+<ul>
+<li>完成从ETH到BTC的跨链洗钱</li>
+</ul>
+<hr>
+<h2>四、为什么值得关注</h2>
+<h3>1. 独特的洗钱时机</h3>
+<p>主犯虽已认罪，但沉寂资金被转移，说明：</p>
+<ul>
+<li>可能存在未被完全追缴的隐藏资产</li>
+<li>执法部门可能未掌握全部关联地址</li>
+<li>新的洗钱路径正在被测试和使用</li>
+</ul>
+<h3>2. Near Protocol的隐私特性</h3>
+<ul>
+<li>Near的意图系统设计初衷是提升用户体验</li>
+<li>但客观上也为资金追踪增加了复杂度</li>
+<li>这种&quot;合规DEX+意图系统&quot;的组合可能成为新的洗钱范式</li>
+</ul>
+<h3>3. 对链上侦探的启示</h3>
+<ul>
+<li>即使案犯认罪，仍需持续监控关联地址</li>
+<li>跨链意图系统将成为反洗钱的新挑战</li>
+<li>HiFiSwap等新兴DEX需要纳入监控范围</li>
+</ul>
+<hr>
+<h2>五、关键数据来源</h2>
+<ol>
+<li><strong>重明链迹实验室每周安全要闻（0622-0628）</strong></li>
+</ol>
+<p>https://cloud.tencent.com/developer/article/2699767</p>
+<ol>
+<li><strong>Elliptic区块链分析报告</strong></li>
+</ol>
+<p>https://www.elliptic.co（HashFlare相关案件）</p>
+<ol>
+<li><strong>HiFiSwap官方文档</strong></li>
+</ol>
+<p>https://hifiswap.com</p>
+<ol>
+<li><strong>Near Protocol Intent系统文档</strong></li>
+</ol>
+<p>https://near.org</p>
+<hr>
+<h2>六、追踪建议</h2>
+<h3>监控地址类型</h3>
+<ul>
+<li>[ ] HashFlare原始关联地址（需通过Elliptic/ZachXBT等获取）</li>
+<li>[ ] HiFiSwap相关资金池地址</li>
+<li>[ ] Near Protocol上新的BTC关联地址</li>
+</ul>
+<h3>监控工具</h3>
+<ul>
+<li>Arkham Intelligence</li>
+<li>Nansen</li>
+<li>Dune Analytics（Near生态）</li>
+</ul>
+<h3>预警规则</h3>
+<ul>
+<li>HashFlare关联地址任何ETH转出</li>
+<li>HiFiSwap大额ETH/BTC跨链交易</li>
+<li>Near Protocol异常活跃的新地址</li>
+</ul>
+<hr>
+<h2>七、合规与法律维度</h2>
+<h3>已被定罪</h3>
+<ul>
+<li>HashFlare主犯已在爱沙尼亚/相关司法辖区认罪</li>
+<li>部分资产已被执法部门收缴</li>
+</ul>
+<h3>待追踪</h3>
+<ul>
+<li>本次异动资金的最终去向</li>
+<li>是否存在其他未被发现的关联地址</li>
+<li>资产是否真正属于已认罪主体</li>
+</ul>
+<hr>
+<h2>八、结论</h2>
+<p>HashFlare沉寂3.5年后的资金异动，揭示了一个重要的链上追踪原则：<strong>即使案件已经结案、案犯已经认罪，链上侦探仍需保持对关联地址的持续监控</strong>。</p>
+<p>这一事件也展示了新兴DeFi工具（如意图系统）如何被滥用于洗钱，对执法部门和安全公司提出了新的挑战。</p>
+<hr>
+<p><strong>免责声明</strong></p>
+<p>本报告仅供教育与研究目的，所有信息均来自公开来源。链上分析需要专业工具验证，本报告不构成任何投资或法律建议。</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

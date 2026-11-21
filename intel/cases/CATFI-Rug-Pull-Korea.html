@@ -1,0 +1,245 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>South Korea CATFI Rug Pull - Investigation Report</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>South Korea CATFI Rug Pull - Investigation Report</h1>
+<p><strong>Date:</strong> May 29, 2026</p>
+<p><strong>Case ID:</strong> ONCHAIN-2026-0529-003</p>
+<p><strong>Project:</strong> CATFI (Catpie) - Solana memecoin</p>
+<p><strong>Status:</strong> <strong>Criminal Indictment</strong> (May 27, 2026)</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>South Korean prosecutors have achieved a landmark legal victory by successfully prosecuting what is being called the <strong>country&#x27;s first criminal case targeting a decentralized exchange (DEX) rug pull</strong>. Five suspects have been indicted under the Virtual Asset User Protection Act for defrauding 256 investors of approximately <strong>$600,000</strong> through a Solana-based memecoin called CATFI.</p>
+<p><strong>This case establishes that DEX rug pulls ARE prosecutable under existing law.</strong></p>
+<hr>
+<h2>Case Timeline</h2>
+<table><thead><tr><th>Date</th><th>Event</th></tr></thead><tbody>
+<tr><td>Feb 2025</td><td>CATFI token launches, surges to $8.99M market cap</td></tr>
+<tr><td>~26 hours post-launch</td><td>Price pump 1,001x (coordinated)</td></tr>
+<tr><td>Post-pump</td><td>Liquidity rug executed</td></tr>
+<tr><td>May 11, 2026</td><td>Five suspects arrested by Seoul police</td></tr>
+<tr><td>May 27, 2026</td><td>Formal indictment by Seoul Southern District Prosecutors&#x27; Office</td></tr>
+</tbody></table>
+<hr>
+<h2>Financial Summary</h2>
+<table><thead><tr><th>Metric</th><th>Amount</th></tr></thead><tbody>
+<tr><td>Investor Losses</td><td>~900 million KRW (~$600,000 USD)</td></tr>
+<tr><td>Suspect Profits</td><td>~400 million KRW (~$260,000 USD)</td></tr>
+<tr><td>Number of Victims</td><td>256 investors</td></tr>
+<tr><td>CATFI Market Cap (Peak)</td><td>$8.99 million</td></tr>
+<tr><td>CATFI Market Cap (Current)</td><td>$57,000 (99% crash)</td></tr>
+<tr><td>Tokens Still Held</td><td>1,512 investors</td></tr>
+</tbody></table>
+<hr>
+<h2>Suspect Details</h2>
+<table><thead><tr><th>Role</th><th>Alias</th><th>Status</th></tr></thead><tbody>
+<tr><td>Ringleader</td><td>&quot;Eth Father&quot;</td><td>Arrested, Indicted</td></tr>
+<tr><td>Accomplice 1</td><td>Unknown</td><td>Arrested, Indicted</td></tr>
+<tr><td>Accomplice 2</td><td>Unknown</td><td>Arrested, Indicted</td></tr>
+<tr><td>Accomplice 3</td><td>Unknown</td><td>Arrested, Indicted</td></tr>
+<tr><td>Accomplice 4</td><td>Unknown</td><td>Arrested, Indicted</td></tr>
+</tbody></table>
+<p><strong>Legal Authority:</strong> Seoul Southern District Prosecutors&#x27; Office - Virtual Asset Crime Joint Investigation Division</p>
+<hr>
+<h2>How the Scheme Worked</h2>
+<h3>Phase 1: Pre-Loading</h3>
+<pre><code>
+Suspects + Insiders → Load heavy CATFI tokens before public launch
+</code></pre>
+<p>Park (&quot;Eth Father&quot;) and associates loaded wallets with CATFI tokens BEFORE any public trading began, giving them outsized positions.</p>
+<h3>Phase 2: Wash Trading</h3>
+<pre><code>
+Suspect Wallet A → Buy CATFI → Sell CATFI → Suspect Wallet B
+</code></pre>
+<p>Circular buys and sells between their own wallets to:</p>
+<ul>
+<li>Fake trading volume</li>
+<li>Create artificial price movement</li>
+<li>Attract attention from traders/bots</li>
+</ul>
+<h3>Phase 3: Price Manipulation</h3>
+<table><thead><tr><th>Time</th><th>CATFI Price Action</th></tr></thead><tbody>
+<tr><td>Launch</td><td>Baseline price</td></tr>
+<tr><td>26 hours later</td><td><strong>1,001x increase</strong></td></tr>
+<tr><td>Method</td><td>Coordinated wash trades</td></tr>
+</tbody></table>
+<h3>Phase 4: Exit (Rug Pull)</h3>
+<pre><code>
+Suspects → Remove liquidity pool → Price → $0
+</code></pre>
+<p>Once retail investors piled in attracted by the artificial pump, the team:</p>
+<ul>
+<li>Pulled all liquidity from the DEX pool</li>
+<li>Collapsed the token price</li>
+<li>Walked away with ~$260,000</li>
+</ul>
+<h3>Phase 5: Cash-Out</h3>
+<pre><code>
+Crypto profits → CEX conversion → Fiat → Identity revealed
+</code></pre>
+<p>The &quot;Eth Father&quot; persona and multiple wallets didn&#x27;t provide real anonymity once the suspects tried to convert crypto to Korean won through regulated exchanges.</p>
+<hr>
+<h2>Legal Analysis</h2>
+<h3>Why This Case Is Different</h3>
+<h3>Before CATFI:</h3>
+<ul>
+<li>South Korea&#x27;s Virtual Asset User Protection Act (effective July 2024) had been used mostly against <strong>centralized platforms</strong></li>
+<li>Bithumb and ACE token cases were the reference points</li>
+<li>DEXs were considered a &quot;gray zone&quot; due to:</li>
+<li>No mandatory issuer disclosures</li>
+<li>Pseudonymous wallets</li>
+<li>No central operator to subpoena</li>
+</ul>
+<h3>CATFI Precedent:</h3>
+<p>Prosecutors argued that <strong>conduct itself</strong> constitutes fraud and market manipulation regardless of centralization:</p>
+<table><thead><tr><th>Element</th><th>Traditional Case</th><th>CATFI Case</th></tr></thead><tbody>
+<tr><td>Exchange</td><td>Centralized CEX</td><td>DEX</td></tr>
+<tr><td>Operator</td><td>Identifiable entity</td><td>Pseudonymous</td></tr>
+<tr><td>Evidence</td><td>Server records</td><td>On-chain data</td></tr>
+<tr><td>Outcome</td><td>❌ Blocked</td><td>✅ <strong>Indictment</strong></td></tr>
+</tbody></table>
+<p><strong>The unfair-trading provisions of the Virtual Asset User Protection Act now officially apply to DEX-based operations.</strong></p>
+<hr>
+<h2>How Investigators Pierced the Anonymity</h2>
+<h3>On-Chain Forensics</h3>
+<ol>
+<li><strong>Wallet clustering:</strong> Mapped connected addresses to suspects</li>
+<li><strong>Trading pattern analysis:</strong> Identified wash trades</li>
+<li><strong>Transaction timing:</strong> Correlated with social media promotion</li>
+</ol>
+<h3>The Critical Breakthrough</h3>
+<pre><code>
+Pseudonymous wallets → CEX conversion → Identity revealed
+</code></pre>
+<p>When suspects converted crypto profits to fiat, they had to use <strong>regulated gateways</strong> (Korean CEXs with mandatory KYC). That&#x27;s where the anonymity wall cracked.</p>
+<hr>
+<h2>The Role of Financial Services Commission</h2>
+<p>Initially, investigators almost dropped the case after suspects claimed they&#x27;d been &quot;hacked&quot; (a common excuse in crypto fraud).</p>
+<p>The <strong>Financial Services Commission (FSC)</strong> intervened:</p>
+<ul>
+<li>Re-referred the matter for prosecution</li>
+<li>Triggered full forensic review</li>
+<li>Coordinated with financial and tax authorities</li>
+<li>Ultimately secured the indictment</li>
+</ul>
+<hr>
+<h2>Regulatory Context: South Korea&#x27;s Crypto Framework</h2>
+<h3>Recent Measures</h3>
+<table><thead><tr><th>Regulation</th><th>Status</th></tr></thead><tbody>
+<tr><td>Virtual Asset User Protection Act</td><td>In effect since July 2024</td></tr>
+<tr><td>5-minute reconciliation requirements</td><td>Implemented</td></tr>
+<tr><td>Automated kill switches on crypto platforms</td><td>Implemented</td></tr>
+<tr><td>Digital Asset Act (100% stablecoin reserves)</td><td>In development</td></tr>
+</tbody></table>
+<h3>What This Means</h3>
+<p>South Korea is systematically closing the gap between centralized and decentralized crypto enforcement. <strong>DeFi is no longer a regulatory sanctuary.</strong></p>
+<hr>
+<h2>Largest Holder Analysis</h2>
+<pre><code>
+Wallet &quot;5Q54&quot;: Largest CATFI holder
+Current holdings: Significant % of remaining market cap
+Status: Under investigation
+</code></pre>
+<hr>
+<h2>Community Impact</h2>
+<h3>Victim Statements</h3>
+<p>1,512 investors still holding CATFI tokens in hopes of recovery, despite:</p>
+<ul>
+<li>99% price decline</li>
+<li>No liquidity available</li>
+<li>Criminal prosecution ongoing</li>
+</ul>
+<h3>Typical Victim Experience</h3>
+<ol>
+<li>Saw &quot;Eth Father&quot; promoting CATFI on social media</li>
+<li>Saw price surging 1,001x in 26 hours</li>
+<li>FOMO&#x27;d in during the pump</li>
+<li>Token crashed when liquidity was removed</li>
+<li>Left holding worthless tokens</li>
+</ol>
+<hr>
+<h2>ZachXBT Angle</h2>
+<p><strong>This case deserves analysis coverage</strong> because:</p>
+<ul>
+<li>✅ Legal precedent for DEX rug pull prosecution</li>
+<li>✅ Clear on-chain evidence of wash trading</li>
+<li>✅ Wallet clustering methodology demonstrated</li>
+<li>✅ Shows regulatory teeth against DeFi fraud</li>
+<li>✅ Precedent for global enforcement</li>
+</ul>
+<p><strong>Recommended angle:</strong> Compare CATFI prosecution to other major rug pulls that went unpunished. Highlight the on-chain forensics that cracked pseudonymous anonymity.</p>
+<hr>
+<h2>Lessons for Investors</h2>
+<h3>Red Flags Missed</h3>
+<table><thead><tr><th>Signal</th><th>Why It Matters</th></tr></thead><tbody>
+<tr><td>1,001x price increase in 26 hours</td><td>Physically impossible without manipulation</td></tr>
+<tr><td>&quot;Eth Father&quot; persona</td><td>Pump-and-dump playbook</td></tr>
+<tr><td>Unknown team</td><td>No accountability</td></tr>
+<tr><td>Solana memecoin</td><td>Highest rug pull risk category</td></tr>
+<tr><td>Wash trading indicators</td><td>Coordinated manipulation</td></tr>
+</tbody></table>
+<h3>Protection Strategies</h3>
+<ol>
+<li><strong>Research team identity</strong> - Legitimate projects reveal founders</li>
+<li><strong>Check trading volume</strong> - 1,001x pump = guaranteed dump</li>
+<li><strong>Avoid memecoins</strong> - 99% are designed to transfer wealth to insiders</li>
+<li><strong>Use blockchain explorers</strong> - Look for wash trading patterns</li>
+<li><strong>Trust the blockchain, not social media</strong> - Anyone can fake a persona</li>
+</ol>
+<hr>
+<h2>Conclusion</h2>
+<p>The CATFI prosecution is a watershed moment for crypto enforcement worldwide. It proves:</p>
+<ol>
+<li><strong>DEX rug pulls are prosecutable</strong> under existing law</li>
+<li><strong>Pseudonymous ≠ anonymous</strong> when cash-out requires KYC</li>
+<li><strong>On-chain forensics</strong> can provide prosecutable evidence</li>
+<li><strong>Regulatory coordination</strong> (FSC + prosecutors + tax authorities) is effective</li>
+<li><strong>DeFi is no longer a regulatory free zone</strong></li>
+</ol>
+<p><strong>Key Takeaway:</strong> The days of anonymous DEX rug pulls with zero consequences may be numbered.</p>
+<hr>
+<h2>Data Sources</h2>
+<ul>
+<li>The Currency Analytics (https://thecurrencyanalytics.com/ponzi-scams/south-koreas-first-dex-rug-pull-case-nets-five-suspects-in-solana-memecoin-fraud-261415)</li>
+<li>Cointelegraph (https://cointelegraph.com/news/south-korea-first-arrest-memecoin-rug-pull-report)</li>
+<li>Digital Asset Works (Korean legal news)</li>
+</ul>
+<hr>
+<p><em>Investigation conducted by on-chain-shadow</em></p>
+<p><em>Report generated: May 29, 2026</em></p>
+<p><em>GitHub Pages: https://onchain-shadow.github.io/on-chain-investigations/</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

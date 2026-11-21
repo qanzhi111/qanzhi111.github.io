@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solana Genesis Whale $14.2M Hack — 深度调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Solana Genesis Whale $14.2M Hack — 深度调查报告</h1>
+<p>&gt; 调查日期：2026-07-12</p>
+<p>&gt; 事件时间：2026-07-10 ~July 10 15:00 UTC</p>
+<p>&gt; 调查员：On-Chain Shadow（链上侦探）</p>
+<p>&gt; 威胁等级：🔴 高</p>
+<p>&gt; 损失金额：~180,900 SOL（~$14.2M）</p>
+<hr>
+<h2>一、事件概述</h2>
+<p>一个与Solana 2020年创世区块分发相关联的远古鲸鱼钱包，在沉睡超过5年后突然被清空。约180,900枚SOL（价值~$14.2M）被盗窃，攻击者在发现异常解质押活动后迅速介入，在数小时内完成全部资金清洗。</p>
+<p><strong>独特角度</strong>：这不是合约漏洞、不是桥接攻击——这是<strong>OPSEC失败</strong>的典型案例。持有SOL超过5年从未出问题的创世级鲸鱼，在最基础的密钥安全上败北。</p>
+<hr>
+<h2>二、完整链上追踪</h2>
+<h3>2.1 受害钱包</h3>
+<p><strong>地址</strong>：<code>HwtbQBNnLERakdUDuCCLWmUs2oETLFQZeHUWeQdPads</code></p>
+<ul>
+<li>来源：Solana 2020年创世分发</li>
+<li>状态：沉睡5年+，从未移动</li>
+<li>被清空前状态：质押中的180,900 SOL</li>
+<li>被盗后余额：&lt; 1 SOL（&lt;$73）</li>
+</ul>
+<h3>2.2 攻击序列</h3>
+<pre><code>
+Step 1: 异常解质押活动（触发警觉）
+        180,900 SOL 从质押账户解除
+        ↓
+Step 2: 资金转移至攻击地址
+        HwtbQB...Pads → Ffd1oB...C2bE
+        全部180,900 SOL在单个区块内完成转出
+        最大单笔：150,181 SOL ($11.84M)
+        ↓
+Step 3: 跨链桥接（通过Mayan Finance）
+        Ffd1oB...C2bE → MayanCircle / SwiftDest合约
+        全部SOL被卖出
+        ↓
+Step 4: 转换为Ethereum资产
+        180,900 SOL → 7,918 ETH
+        分散至4个以太坊钱包
+</code></pre>
+<h3>2.3 攻击者地址</h3>
+<p><strong>Solana侧</strong>：</p>
+<ul>
+<li>主要盗窃地址：<code>Ffd1oB2aYM5UzMYUM7TmxULDRQb6KzgrBwmgj9U1C2bE</code></li>
+<li>辅助地址：<code>653pnn5fzF51FfotBwxua55Es4QXxTdaXJLbPczVmswp</code></li>
+</ul>
+<p><strong>Ethereum侧（ETH存放地址）</strong>：</p>
+<table><thead><tr><th>#</th><th>地址</th><th>备注</th></tr></thead><tbody>
+<tr><td>1</td><td><code>0xAa5cfa4E96Dda0F9Aa30F4dC948B542A9b5817c6</code></td><td>主要ETH持有</td></tr>
+<tr><td>2</td><td><code>0xbf11bdfBEB9ed137C352C81e45D191cACaE6B0Cf</code></td><td>ETH分散存放</td></tr>
+<tr><td>3</td><td><code>0x536B4ee7507C41143e1b0BD1bF3F2B84bE404836</code></td><td>ETH分散存放</td></tr>
+<tr><td>4</td><td><code>0x5D73E47308362228Fbf23372DeA225A7D5b6D506</code></td><td>ETH分散存放</td></tr>
+</tbody></table>
+<h3>2.4 资金清洗速度</h3>
+<ul>
+<li>全部180,900 SOL在<strong>单个区块</strong>内从受害者钱包转出</li>
+<li>4小时内全部SOL通过Mayan Finance跨链兑换为ETH</li>
+<li>7,918 ETH分散至4个独立以太坊钱包</li>
+<li>总计清洗完成时间：~4小时</li>
+</ul>
+<hr>
+<h2>三、攻击向量分析</h2>
+<h3>3.1 已知信息</h3>
+<ul>
+<li>攻击方法：<strong>未公开确认</strong></li>
+<li>可疑迹象：异常解质押活动 → 攻击者可能在监控该钱包</li>
+<li>可能向量：</li>
+</ul>
+<ol>
+<li>私钥泄露/被窃取</li>
+<li>社会工程攻击</li>
+<li>恶意钓鱼合约交互</li>
+<li>硬件钱包供应链攻击</li>
+<li>钱包软件漏洞（影响创世分发钱包的老旧软件）</li>
+</ol>
+<h3>3.2 关键线索：解质押触发</h3>
+<p>Specter Investigation首先发现&quot;不寻常的解质押活动&quot;，随后追踪到资金被盗。这暗示：</p>
+<ul>
+<li>攻击者可能需要先触发解质押才能获取SOL</li>
+<li>或者攻击者监控到了所有者发起的解质押操作，抢先介入</li>
+<li>Solana的质押解除通常需要数个epoch（~2-3天），但此次似乎加速完成</li>
+</ul>
+<h3>3.3 为何5年未被触碰？</h3>
+<p>创世分发钱包的特征：</p>
+<ul>
+<li>大量资金、长期不活跃</li>
+<li>所有者可能使用老旧的钱包软件</li>
+<li>可能从未更新安全措施</li>
+<li>5年的&quot;安全&quot;可能给了虚假的安全感</li>
+</ul>
+<hr>
+<h2>四、市场影响分析</h2>
+<h3>4.1 SOL价格韧性</h3>
+<ul>
+<li>事件发生后SOL交易价格~$78，<strong>实际微涨</strong></li>
+<li>Solana市值 &gt; $46B，$14.2M占比微乎其微</li>
+<li>交易员区分&quot;个人密钥泄露&quot;与&quot;协议级漏洞&quot;</li>
+<li>被盗SOL大部分未被抛售，仍在攻击者钱包中</li>
+</ul>
+<h3>4.2 衍生品数据</h3>
+<ul>
+<li>Binance OI: $685.46M</li>
+<li>OKX OI: $242.03M</li>
+<li>Bybit OI: $522.92M</li>
+<li>多空比维持在1以上（买方仍占主导）</li>
+<li>24小时交易量下降30-40%（流动性清洗而非恐慌性抛售）</li>
+</ul>
+<hr>
+<h2>五、独特分析角度</h2>
+<h3>5.1 &quot;沉睡巨人&quot;攻击模式</h3>
+<p>这不是第一次创世级/远古钱包被盗：</p>
+<table><thead><tr><th>事件</th><th>损失</th><th>沉睡时间</th></tr></thead><tbody>
+<tr><td>2024年BTC创世矿工钱包</td><td>未知</td><td>~14年</td></tr>
+<tr><td>2025年多个Mt.Gox相关钱包</td><td>数亿美元</td><td>~10年</td></tr>
+<tr><td><strong>Solana Genesis Whale</strong></td><td><strong>$14.2M</strong></td><td><strong>5年</strong></td></tr>
+<tr><td>2026年 Ill Bloom漏洞</td><td>$5M+</td><td>2018年起创建的钱包</td></tr>
+</tbody></table>
+<p><strong>模式</strong>：远古钱包 = 高价值 + 弱OPSEC + 老旧软件 = 攻击者的理想目标</p>
+<h3>5.2 跨链桥作为洗钱工具</h3>
+<p>攻击者的清洗路径：Solana → Mayan Finance → Ethereum</p>
+<p>Mayan Finance成为攻击后的首选桥接工具，原因：</p>
+<ul>
+<li>无需KYC</li>
+<li>快速跨链</li>
+<li>在SOL-ETH交换中流动性充足</li>
+</ul>
+<h3>5.3 OPSEC教训</h3>
+<p>&quot;审计过的代码在人的环节出错时依然失败。&quot;</p>
+<p>即使持有超过5年没有任何问题，单个密钥泄露就能让所有资产归零。这对整个行业都是一个警示：</p>
+<ol>
+<li><strong>硬件钱包 ≠ 绝对安全</strong> — 如果助记词在其他地方暴露</li>
+<li><strong>长期安全 ≠ 永久安全</strong> — 5年没问题不代表第6年也安全</li>
+<li><strong>监控钱包活动</strong> — 设置链上警报，第一时间发现异常</li>
+<li><strong>分散存储</strong> — 不要把所有资产放在一个地址</li>
+</ol>
+<hr>
+<h2>六、后续关注</h2>
+<ol>
+<li><strong>7,918 ETH的动向</strong> — 是否开始流入交易所或OTC</li>
+<li><strong>攻击向量确认</strong> — ZachXBT和Specter仍在调查</li>
+<li><strong>是否孤立事件</strong> — 其他创世分发钱包是否也面临风险</li>
+<li><strong>Mayan Finance的角色</strong> — 是否需要加强合规检查</li>
+</ol>
+<hr>
+<h2>七、数据来源</h2>
+<ol>
+<li><a href="https://blockinsider.com/article/solana-whale-hacked-of-usd14-2-million-reports-zachxbt">BlockInsider - Solana Whale Hacked Of $14.2 Million</a></li>
+<li><a href="https://coinpost.ai/en/topics/127740">CoinPost - Suspected theft drains 180,900 SOL</a></li>
+<li><a href="https://www.publish0x.com/analysis-financial/solana-price-action-and-derivatives-data-breakdown-following-xvpdkwo">Publish0x - Solana Price Action Following $14.2M Exploit</a></li>
+<li><a href="https://news.wikibit.com/en/202607112764472136.html">WikiBit - Genesis Whale Hacked</a></li>
+<li><a href="https://m.weibo.cn/detail/5319262409066542">Bit余烬微博 - 链上追踪详情</a></li>
+<li>ZachXBT (Telegram/X) — 原始调查</li>
+<li>Specter Investigation (X) — 首先发现异常</li>
+</ol>
+<hr>
+<p><em>本报告基于公开来源编制。攻击者地址已公开，所有链上数据均可独立验证。</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

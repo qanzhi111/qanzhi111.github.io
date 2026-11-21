@@ -1,0 +1,117 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alephium Bridge $815K 攻击事件简报</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Alephium Bridge $815K 攻击事件简报</h1>
+<p><strong>报告日期</strong>: 2026年6月1日</p>
+<p><strong>损失金额</strong>: $815,000 USD</p>
+<p><strong>攻击类型</strong>: 跨链消息伪造 / 守护密钥争议</p>
+<p><strong>攻击时长</strong>: 7分钟</p>
+<hr>
+<h2>📋 事件摘要</h2>
+<p>2026年5月30日，Alephium的TokenBridge遭受攻击，损失约 <strong>$81.5万美元</strong>。攻击者通过伪造跨链消息（VAA）在两条链上同时发动攻击，铸造了超过此前总供应量的wrapped ALPH代币。</p>
+<p>&gt; ⚠️ <strong>争议焦点</strong>: 安全公司Blockaid认为是&quot;守护密钥被入侵&quot;，Alephium团队则声称是&quot;后端离线漏洞&quot;。这一争议本身就值得关注。</p>
+<hr>
+<h2>💰 被盗资产明细</h2>
+<h3>以太坊端</h3>
+<table><thead><tr><th>资产</th><th>数量</th><th>价值</th></tr></thead><tbody>
+<tr><td>USDT</td><td>200,967</td><td>$200,967</td></tr>
+<tr><td>USDC</td><td>17,594</td><td>$17,594</td></tr>
+<tr><td>WETH</td><td>5.18</td><td>~$10,400</td></tr>
+<tr><td>WBTC</td><td>0.335</td><td>~$11,400</td></tr>
+</tbody></table>
+<h3>BNB Chain端</h3>
+<table><thead><tr><th>资产</th><th>数量</th><th>价值</th></tr></thead><tbody>
+<tr><td>USDT</td><td>36,750</td><td>$36,750</td></tr>
+<tr><td>WBNB</td><td>24.386</td><td>~$5,500</td></tr>
+</tbody></table>
+<h3>铸造的空气资产</h3>
+<table><thead><tr><th>代币</th><th>数量</th><th>意义</th></tr></thead><tbody>
+<tr><td>wALPH</td><td>13,760,000</td><td><strong>&gt;100% 此前总供应量</strong></td></tr>
+</tbody></table>
+<p><strong>来源</strong>: Alephium官方声明, Blockaid</p>
+<hr>
+<h2>🔗 涉案地址</h2>
+<h3>攻击者钱包</h3>
+<pre><code>
+0x6681ebC82551fE52fDB48E65872e85a3ae06921d
+</code></pre>
+<h3>关键交易</h3>
+<pre><code>
+0x06cc...c6b4 (完整哈希需链上验证)
+</code></pre>
+<p><strong>来源</strong>: CryptoCompass (https://cryptocompass.com/articles/report-says-fake-bridge-messages-let-hacker-drain-815)</p>
+<hr>
+<h2>🔍 攻击向量分析</h2>
+<h3>Blockaid版本（守护密钥入侵说）</h3>
+<ol>
+<li>攻击者获取了4个守护密钥中的3个</li>
+<li>使用这些密钥签署伪造的VAA（Verified Action Approvals）</li>
+<li>调用 <code>completeTransfer</code> 函数释放资产</li>
+<li>同时铸造无抵押的wrapped ALPH</li>
+</ol>
+<h3>Alephium官方版本（后端漏洞说）</h3>
+<p>&gt; &quot;The exploit was NOT caused by a compromise of the guardian keys, contrary to some early external reports. The exploit was caused by an offchain vulnerability in the bridge backend that could be triggered in specific edge cases.&quot;</p>
+<hr>
+<h2>💸 洗钱状态</h2>
+<ul>
+<li><strong>Tornado Cash</strong>: 部分资金已转入 (via Specter分析)</li>
+<li><strong>攻击者地址</strong>: 仍持有约$815K + 1376万wALPH</li>
+<li><strong>时间点</strong>: 截至报告时资金未移动</li>
+</ul>
+<hr>
+<h2>📊 与Gravity Bridge对比</h2>
+<table><thead><tr><th>维度</th><th>Gravity Bridge</th><th>Alephium</th></tr></thead><tbody>
+<tr><td>日期</td><td>5月30日</td><td>5月30日</td></tr>
+<tr><td>金额</td><td>$5.4M</td><td>$815K</td></tr>
+<tr><td>攻击时长</td><td>数分钟</td><td><strong>7分钟</strong></td></tr>
+<tr><td>攻击原因</td><td>密钥泄露</td><td>后端漏洞/密钥争议</td></tr>
+<tr><td>铸造资产</td><td>无</td><td>1376万wALPH</td></tr>
+<tr><td>洗钱</td><td>ChangeNow/Binance</td><td>Tornado Cash</td></tr>
+<tr><td>损失是否可追</td><td>待定</td><td>待定</td></tr>
+</tbody></table>
+<hr>
+<h2>📚 数据来源</h2>
+<ol>
+<li>NullTx: https://nulltx.com/alephium-bridge-hacked-for-815000-in-7-minutes-as-compromised-guardian-keys-enable-forged-token-transfers/</li>
+<li>Yellow: https://yellow.com/news/alephium-off-chain-flaw-815k-breach</li>
+<li>CryptoCompass: https://cryptocompass.com/articles/report-says-fake-bridge-messages-let-hacker-drain-815</li>
+<li>The Defiant: https://thedefiant.io/news/hacks/alephium-bridge-815k-forged-guardian-messages</li>
+</ol>
+<hr>
+<p><strong>简报完成时间</strong>: 2026年6月1日</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

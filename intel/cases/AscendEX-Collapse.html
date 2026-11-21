@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AscendEX（前BitMax）关闭调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>AscendEX（前BitMax）关闭调查报告</h1>
+<p>&gt; 调查日期：2026-07-09</p>
+<p>&gt; 调查人：Onchain Shadow</p>
+<p>&gt; 状态：进行中</p>
+<p>&gt; 置信度：高（基于多源公开链上数据与新闻报道交叉验证）</p>
+<hr>
+<h2>📋 事件概要</h2>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>平台名称</td><td>AscendEX（前BitMax）</td></tr>
+<tr><td>事件类型</td><td>交易所关闭 / 疑似资不抵债 / 用户资金冻结</td></tr>
+<tr><td>停止运营日期</td><td>2026-07-01</td></tr>
+<tr><td>提款全面冻结</td><td>2026-07-06</td></tr>
+<tr><td>用户影响</td><td>未确认——提款暂停，无时间表，无保证</td></tr>
+<tr><td>剩余热钱包资产</td><td>~$13.45M（其中&gt;$12M为ASD+UNITE代币，无主流流动资）</td></tr>
+<tr><td>关键流出</td><td>2026-06-20 单日$2.4亿</td></tr>
+<tr><td>ZachXBT首次警告</td><td>2026-06-26</td></tr>
+<tr><td>历史黑客事件</td><td>2021-12 Lazarus Group攻击，损失$77.7M</td></tr>
+</tbody></table>
+<hr>
+<h2>🔥 核心发现</h2>
+<h3>1. 时间线还原</h3>
+<table><thead><tr><th>时间</th><th>事件</th></tr></thead><tbody>
+<tr><td>2018-08</td><td>BitMax.io由George Cao和Ariel Ling创立</td></tr>
+<tr><td>2019-2020</td><td>牛市期间快速扩张，跻身全球前十CEX</td></tr>
+<tr><td>2021-03</td><td>更名为AscendEX</td></tr>
+<tr><td>2021</td><td>完成$50M Series B（Polychain Capital、Hack VC领投），估值$4.5亿</td></tr>
+<tr><td>2021-12</td><td>EVM/Tron/Solana热钱包被黑，损失$77.7M（Lazarus Group）</td></tr>
+<tr><td>2021-12</td><td>承诺全额赔偿用户，将未受影响资产转入冷钱包</td></tr>
+<tr><td>2022</td><td>Cao控制的Aimfinity Investment Corp.在Nasdaq上市SPAC</td></tr>
+<tr><td>2023-10</td><td>Aimfinity宣布与台湾健康手表公司Docter合并（$60M）</td></tr>
+<tr><td>2026-05-06</td><td>用户提款已开始受限（早于官方公告两个月）</td></tr>
+<tr><td>2026-06-12</td><td>通知用户进入&quot;分阶段结算&quot;流程</td></tr>
+<tr><td>2026-06-20</td><td><strong>热钱包单日流出$2.4亿</strong>——关闭前关键信号</td></tr>
+<tr><td>2026-06-23</td><td>仍在宣传新代币上币</td></tr>
+<tr><td>2026-06-24</td><td>用户被授权首次结算提款，后显示&quot;已退款&quot;无TXID</td></tr>
+<tr><td>2026-06-26</td><td><strong>ZachXBT首次公开警告</strong>——提款延迟+热钱包流动性枯竭</td></tr>
+<tr><td>2026-07-01</td><td>全面停止运营</td></tr>
+<tr><td>2026-07-02</td><td>ZachXBT二次警告——提款仍未处理但存款仍在接受</td></tr>
+<tr><td>2026-07-02</td><td>AscendEX X官方账号停止更新</td></tr>
+<tr><td>2026-07-06</td><td>所有提款暂停，改为手动审核</td></tr>
+<tr><td>2026-07-06</td><td>官方用户信：不保证提款时间或金额</td></tr>
+<tr><td>2026-07-08</td><td>ZachXBT第三次声明——验证用户索赔达数百万美元，热钱包无流动资</td></tr>
+<tr><td>2026-07-08</td><td>ZachXBT公布AscendEX联合创始人个人电话号码给受害者</td></tr>
+<tr><td>2026-07-09</td><td>ESMA启动加密托管风险审查（时机巧合）</td></tr>
+</tbody></table>
+<h3>2. 链上数据分析</h3>
+<p><strong>Arkham Intelligence数据（截至2026-07-08 ET）</strong>：</p>
+<ul>
+<li>AscendEX标记地址持有约$13.45M加密资产</li>
+<li>其中&gt;$12M为平台自有代币ASD和Unbound Science的UNITE代币</li>
+<li><strong>无ETH、USDT、USDC、SOL等主流流动资产</strong></li>
+<li>关闭前两天仅有一笔数万美元BTC提款，其余均为一周前的小额交易</li>
+</ul>
+<p><strong>$2.4亿异常流出（2026-06-20）</strong>：</p>
+<ul>
+<li>ZachXBT引用的链上记录显示热钱包余额在6月20日急剧下降</li>
+<li>同一地址在不到两个月前收到类似规模的注入</li>
+<li>注入后储备稳定在~$50M水平</li>
+<li>6月20日资金被全额提取</li>
+<li><strong>关键推断</strong>：在公开以MiCA为由关闭之前，核心流动性可能已被移除</li>
+<li>性质未明：预先转移？债务偿还？退出尝试？</li>
+</ul>
+<p><strong>热钱包余额历史轨迹</strong>：</p>
+<pre><code>
+2026-04末: ~$50M（$2.4亿注入后）
+2026-06-20: ~$0（$2.4亿流出）
+2026-07-08: ~$13.45M（&gt;90%为非流动资产）
+</code></pre>
+<h3>3. 创始人画像与问责路径</h3>
+<p><strong>George Cao（曹敬/Jing Cao）</strong>：</p>
+<ul>
+<li>芝加哥大学计算机科学博士</li>
+<li>前Barclays Capital纽约/伦敦量化投资总监</li>
+<li>创办量化交易基金Delpha Capital Management（CIO）</li>
+<li>2018年与Ariel Ling共同创立BitMax</li>
+<li>控制Aimfinity Investment Corp.（Nasdaq上市SPAC，2022年上市）</li>
+</ul>
+<p><strong>内部指控（社区消息，未经公开证实）</strong>：</p>
+<ul>
+<li>妻子Jasmine Ma担任纽约财务主管（&quot;夫妻店&quot;模式）</li>
+<li>涉嫌拖欠员工工资</li>
+<li>涉嫌伪造与马来西亚皇室和土耳其总统办公室的投融资关系以安抚员工</li>
+<li>涉嫌用户资产挪用</li>
+</ul>
+<p><strong>问责难点</strong>：</p>
+<ul>
+<li>跨司法管辖区运营</li>
+<li>无EU MiCA授权 → 不受EU监管框架保护</li>
+<li>美国用户可通过SEC/CFTC投诉</li>
+<li>SPAC实体Aimfinity可能成为法律追索点</li>
+<li>Nasdaq上市实体有信息披露义务</li>
+</ul>
+<h3>4. MiCA借口分析</h3>
+<p>AscendEX将关闭归因于MiCA——但这更像是&quot;不可抗力式死亡&quot;的借口而非真正原因：</p>
+<table><thead><tr><th>论据</th><th>分析</th></tr></thead><tbody>
+<tr><td>AscendEX从未获得EU监管批准</td><td>MiCA是否生效对其原有业务模式无直接影响</td></tr>
+<tr><td>全球1200+注册加密 firm仅210家获授权</td><td>行业淘汰赛确实存在，但AscendEX的问题不在合规成本</td></tr>
+<tr><td>6月20日$2.4亿流出</td><td>远早于7月1日MiCA生效日——流动性危机先于监管触发</td></tr>
+<tr><td>5月6日提款已受限</td><td>早于MiCA执行日期近两个月</td></tr>
+<tr><td>提款冻结期间仍接受存款</td><td>这不是合规驱动的行为模式</td></tr>
+</tbody></table>
+<p><strong>结论</strong>：MiCA提供了一个体面的退出理由，但实际问题是资不抵债。</p>
+<h3>5. 与FTX崩溃的范式对比</h3>
+<table><thead><tr><th>维度</th><th>FTX (2022)</th><th>AscendEX (2026)</th></tr></thead><tbody>
+<tr><td>叙事</td><td>&quot;有效利他主义&quot;</td><td>&quot;华尔街量化&quot;</td></tr>
+<tr><td>融资</td><td>多轮大额</td><td>$50M Series B (Polychain, Hack VC)</td></tr>
+<tr><td>安全事件</td><td>无（挪用用户资金）</td><td>$77.7M Lazarus攻击（承诺赔偿但未兑现？）</td></tr>
+<tr><td>崩溃信号</td><td>提款延迟→挤兑</td><td>提款延迟→ZachXBT警告→关闭</td></tr>
+<tr><td>监管借口</td><td>多重指控</td><td>MiCA</td></tr>
+<tr><td>领导层</td><td>SBF沉默</td><td>George Cao沉默</td></tr>
+<tr><td>用户资金</td><td>被挪用</td><td>被冻结</td></tr>
+<tr><td>创始人背景</td><td>MIT/Barclays</td><td>芝加哥大学PhD/Barclays</td></tr>
+</tbody></table>
+<p><strong>共同模式</strong>：精致的华尔街叙事 → 大额融资 → 安全事件/挪用 → 流动性枯竭 → 静默关闭 → 领导层失联</p>
+<hr>
+<h2>🔗 关联线索</h2>
+<ol>
+<li><strong>Lazarus Group 2021年黑客</strong>：$77.7M被盗。AscendEX承诺赔偿用户——但5年后关闭时热钱包几乎为空。赔偿承诺是否兑现？用户资产是否从未恢复？</li>
+<li><strong>Aimfinity Investment Corp.（Nasdaq SPAC）</strong>：Cao控制的上市实体。可能的法律追索点——投资者可以调查SPAC合并中的信息披露问题。</li>
+<li><strong>Polychain Capital / Hack VC</strong>：Series B投资者。投资损失情况？是否有尽调责任？</li>
+<li><strong>JuCoin</strong>：ZachXBT同期警告的另一家提款延迟交易所——并行案例值得跟踪。</li>
+<li><strong>ESMA托管审查</strong>：7月8日启动，时机上与AscendEX崩溃高度吻合。</li>
+</ol>
+<hr>
+<h2>🎯 筛选标准命中</h2>
+<table><thead><tr><th>标准</th><th>状态</th></tr></thead><tbody>
+<tr><td>损失金额 &gt; $100K</td><td>✅ 潜在数百万美元用户资金被冻结</td></tr>
+<tr><td>攻击者地址/交易哈希已公开</td><td>✅ Arkham数据+ZachXBT链上分析公开</td></tr>
+<tr><td>ZachXBT尚未覆盖或覆盖不充分</td><td>✅ ZachXBT发警告但未完成深度调查报告</td></tr>
+<tr><td>有独特分析角度</td><td>✅ MiCA借口分析 + FTX范式对比 + 创始人追溯 + $240M流出时间线</td></tr>
+<tr><td>发生在48小时内</td><td>✅ 7月6-9日为最新发展</td></tr>
+</tbody></table>
+<hr>
+<h2>📊 ChainSentinel关联</h2>
+<ol>
+<li><strong>交易所储备证明审计需求验证</strong>：AscendEX的崩溃再次证明，没有透明储备证明的CEX是系统性风险</li>
+<li><strong>流动性异常监测</strong>：$2.4亿单日流出是明确的可检测信号——ChainSentinel可以作为&quot;交易所健康仪表盘&quot;</li>
+<li><strong>ZachXBT式预警能力</strong>：从提款延迟到热钱包分析到公开警告，这是一个可复制的预警工作流</li>
+</ol>
+<hr>
+<h2>📎 数据来源</h2>
+<ol>
+<li><a href="https://cryptobriefing.com/ascendex-ceases-operations-zachxbt-warning/">AscendEX ceases operations after ZachXBT warning - Crypto Briefing</a></li>
+<li><a href="https://bingx.pro/en/flash-news/post/ascendex-to-halt-trading-july-and-move-withdrawals-to-manual-review-from-july">AscendEX to Shut Down as Liquidity Dries Up - Bitpush via BingX</a></li>
+<li><a href="https://www.woofun.ai/en/news/detail/100979">AscendEX Shutdown Exposes $77.7M Loss - Woofun AI</a></li>
+<li><a href="https://www.coindesk.cc/ascendex-exchange-collapse-hands-europe-its-first-mica-test-79902.html">AscendEX Exchange Collapse Hands Europe Its First MiCA Test - BeInCrypto</a></li>
+<li><a href="https://protos.com/ascendex-shutdown-uncertainty-over-withdrawals-as-hot-wallets-lack-funds/">AscendEx shutdown: Uncertainty over withdrawals - Protos</a></li>
+<li><a href="https://h.chaincatcher.com/en/article/2274618">ZachXBT: AscendEX withdrawal delays - Chain Catcher</a></li>
+<li><a href="https://www.chainupeye.com/en/s-articles/article700">AscendEX Liquidity Crisis - Trustformer KYT</a></li>
+<li><a href="https://www.trustformer.info/en/s-articles/article701">AscendEX Five-Year Risk Trajectory - Trustformer</a></li>
+<li><a href="https://coincentral.com/crypto-exchange-ascendex-shuts-down-after-hot-wallet-warning/">Crypto Exchange AscendEX Shuts Down - CoinCentral</a></li>
+<li>Arkham Intelligence 公开链上数据</li>
+<li>ZachXBT Telegram/X 公开警告（2026-06-26, 07-02, 07-08）</li>
+</ol>
+<hr>
+<p><em>调查持续更新中。如获取到新的链上数据或创始人信息，将补充至本报告。</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

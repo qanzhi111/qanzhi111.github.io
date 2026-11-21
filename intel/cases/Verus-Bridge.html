@@ -1,0 +1,201 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verus-Ethereum Bridge $11.7M 类型混淆攻击链上调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Verus-Ethereum Bridge $11.7M 类型混淆攻击链上调查报告</h1>
+<p><strong>调查日期</strong>: 2026年6月18日</p>
+<p><strong>事件日期</strong>: 2026年5月18日</p>
+<p><strong>损失金额</strong>: ~$11.7M（ETH、tBTC、USDC）</p>
+<p><strong>攻击类型</strong>: 跨链桥类型校验缺陷（Type Confusion）</p>
+<p><strong>影响链</strong>: Verus L1 + Ethereum</p>
+<p><strong>资金来源</strong>: Tornado Cash（1 ETH 种子资金）</p>
+<p><strong>资金归还</strong>: 截至5月23日约75%已归还</p>
+<hr>
+<h2>事件概述</h2>
+<p>2026年5月18日，连接Verus L1链和Ethereum的跨链桥Verus-Ethereum Bridge遭受攻击，攻击者利用桥合约中的类型校验缺陷，将supplemental export output伪装为primary export，成功提取约$11.7M的ETH、tBTC和USDC。截至5月23日，约75%的被盗资金已归还。</p>
+<hr>
+<h2>技术架构分析</h2>
+<h3>桥接机制</h3>
+<p>Verus-Ethereum Bridge的运作方式：</p>
+<ol>
+<li>提交方在Verus链上发起export交易</li>
+<li>公证人（notarization）将Verus侧状态锚定到Ethereum</li>
+<li>提交方在Ethereum侧提交证明数据，桥合约验证通过后释放资产</li>
+<li>Ethereum本身无法直接观察Verus交易，完全依赖提交的证明和锚定可信Verus状态的公证</li>
+</ol>
+<h3>三种桥对象</h3>
+<table><thead><tr><th>对象类型</th><th>定义</th><th>用途</th></tr></thead><tbody>
+<tr><td><strong>Primary Export</strong></td><td>Ethereum导入并用于执行支付的对象</td><td>正常的跨链资产转移</td></tr>
+<tr><td><strong>Supplemental Export Output</strong></td><td>附加在primary export上的额外数据</td><td>不应被当作独立的活跃export</td></tr>
+<tr><td><strong>Notarization</strong></td><td>向Ethereum证明Verus侧对象存在的公证</td><td>状态锚定</td></tr>
+</tbody></table>
+<p><strong>关键设计假设</strong>: supplemental export output不应被桥合约解析为可支付的primary export。</p>
+<hr>
+<h2>漏洞根因分析</h2>
+<h3>核心缺陷：类型校验缺失</h3>
+<p>存在漏洞的Ethereum侧桥合约部署在：</p>
+<ul>
+<li><code>0xa045...6fc87f</code></li>
+<li><code>0x08f0...d0107d</code></li>
+</ul>
+<p>根本原因是Ethereum导入路径中的<strong>类型校验缺陷</strong>：</p>
+<ul>
+<li>桥合约验证了Verus侧对象的<strong>真实性</strong>（密码学证明正确）</li>
+<li>但在用其释放资金前，<strong>未校验该对象是否为有效的primary export</strong></li>
+<li>接受了一个精心构造的supplemental output并将其作为正常的活跃export解析</li>
+</ul>
+<h3>具体技术细节</h3>
+<p>在<code>RollupProcessorV3</code>的<code>processRollup</code>类似逻辑中：</p>
+<ul>
+<li>ZK证明覆盖了所有从<code>encodedInnerTxData</code>解码的交易</li>
+<li>但L1结算逻辑只处理前<code>numRealTxs</code>个解码槽位</li>
+<li>没有任何检查会拒绝设置了<code>FLAG_SUPPLEMENTAL</code>标志的对象</li>
+</ul>
+<h3>修复方案</h3>
+<p>修复在<code>checkCCEValues</code>函数中显式检查<code>FLAG_SUPPLEMENTAL</code>标志，若设置则回退交易。</p>
+<hr>
+<h2>攻击链重建</h2>
+<h3>攻击时间线</h3>
+<table><thead><tr><th>时间</th><th>事件</th></tr></thead><tbody>
+<tr><td>5月17日</td><td>攻击者通过Tornado Cash向Ethereum地址注入1 ETH作为种子资金</td></tr>
+<tr><td>5月18日</td><td>攻击者从Verus水龙头获取0.02 VRSC</td></tr>
+<tr><td>5月18日</td><td>攻击者在Verus上提交4笔含supplemental export output的export交易</td></tr>
+<tr><td>等待公证</td><td>跨链公证在Ethereum上推进</td></tr>
+<tr><td>5月18日</td><td>攻击者在Ethereum提交伪造导入交易</td></tr>
+<tr><td>攻击成功</td><td>提取~$11.7M（ETH、tBTC、USDC）</td></tr>
+<tr><td>后续</td><td>Verus节点触发无效状态断言，桥停止运行</td></tr>
+<tr><td>5月23日</td><td>约75%资金已归还</td></tr>
+</tbody></table>
+<h3>攻击步骤详解</h3>
+<p><strong>Step 1: 资金准备</strong></p>
+<ul>
+<li>Ethereum: 通过Tornado Cash向<code>0x5aBb...9D5777</code>注入1 ETH</li>
+<li>Verus: 从水龙头为<code>RW9vEW...B3g6zd</code>获取0.02 VRSC</li>
+</ul>
+<p><strong>Step 2: 构造恶意Export</strong></p>
+<ul>
+<li>在Verus上提交4笔export交易</li>
+<li>包含精心构造的supplemental export output</li>
+<li>编码确保可被正常解析</li>
+<li>嵌入<code>hashReserveTransfers</code>承诺值，与后续欺诈性支付匹配</li>
+</ul>
+<p><strong>Step 3: 等待公证推进</strong></p>
+<ul>
+<li>跨链公证在Ethereum上推进到足够阶段</li>
+</ul>
+<p><strong>Step 4: 提交伪造导入</strong></p>
+<ul>
+<li>在Ethereum提交伪造的导入交易</li>
+<li>被证明的Verus侧对象是supplemental output</li>
+<li><code>serializedTransfers</code>哈希与已承诺的<code>hashReserveTransfers</code>匹配</li>
+</ul>
+<p><strong>Step 5: 类型混淆成功</strong></p>
+<ul>
+<li>桥合约接受证明但未识别对象为supplemental</li>
+<li>将其作为有效primary export解析</li>
+<li>欺诈性转账通过Ethereum侧检查</li>
+</ul>
+<p><strong>Step 6: 提取资金</strong></p>
+<ul>
+<li>提取~$11.7M的ETH、tBTC和USDC</li>
+</ul>
+<p><strong>Step 7: 自然终止</strong></p>
+<ul>
+<li>恶意导入成功后，Verus节点因欺诈性export线程与真实线程共存触发无效状态断言</li>
+<li>桥的进一步运行被阻止，后续利用也因此受限</li>
+</ul>
+<h3>交易引用</h3>
+<ul>
+<li><strong>Ethereum攻击交易</strong>: <code>0x6990f0...87eb321</code></li>
+<li><strong>Verus Export交易</strong>: <code>f899e698...b9f5a733</code></li>
+</ul>
+<hr>
+<h2>攻击者画像分析</h2>
+<h3>特征</h3>
+<ol>
+<li><strong>深度链内知识</strong>: 攻击者蓄意利用专用跨链export类型，说明对Verus链内部设计有深入理解</li>
+<li><strong>精心准备</strong>: 提前通过Tornado Cash准备种子资金，从水龙头获取VRSC</li>
+<li><strong>单点攻击</strong>: 仅一次成功利用即提取全部可提取金额（节点断言阻止了后续利用）</li>
+<li><strong>协商归还</strong>: 约75%资金在5天内归还——可能进行了白帽子协商</li>
+</ol>
+<h3>与已知攻击模式对比</h3>
+<table><thead><tr><th>特征</th><th>Verus Bridge</th><th>Hyperbridge</th><th>Syscoin Bridge</th></tr></thead><tbody>
+<tr><td>攻击面</td><td>消息类型语义</td><td>证明-请求解绑</td><td>验证逻辑</td></tr>
+<tr><td>损失</td><td>$11.7M</td><td>$2.5M</td><td>~$8M</td></tr>
+<tr><td>根因</td><td>类型校验缺失</td><td>numRealTxs≠numTxs</td><td>验证间隙</td></tr>
+<tr><td>密码学验证</td><td>✅通过</td><td>✅通过</td><td>✅通过</td></tr>
+<tr><td>归还比例</td><td>~75%</td><td>未知</td><td>未知</td></tr>
+</tbody></table>
+<hr>
+<h2>行业影响与系统性分析</h2>
+<h3>跨链桥攻击面分类</h3>
+<p>2026年已确认的跨链桥攻击模式：</p>
+<ol>
+<li><strong>证明验证逻辑缺陷</strong>: Hyperbridge（MMR证明重放）、Syscoin</li>
+<li><strong>消息类型语义混淆</strong>: Verus（supplemental vs primary）← <strong>新增类别</strong></li>
+<li><strong>弃用合约僵尸风险</strong>: Aztec Connect</li>
+<li><strong>私钥泄露</strong>: Gravity Bridge（多次）、Humanity Protocol</li>
+</ol>
+<h3>核心教训</h3>
+<p><strong>&quot;密码学证明正确 ≠ 业务逻辑正确&quot;</strong></p>
+<p>Verus事件揭示了一个新的攻击类别：</p>
+<ul>
+<li>传统跨链桥安全审查聚焦于<strong>密码学验证</strong>（签名、Merkle证明、ZK证明）</li>
+<li>但<strong>消息格式本身的语义</strong>同样是攻击面</li>
+<li>supplemental数据字段、编码边界、解析器偏移量需要与签名检查同等严格对待</li>
+</ul>
+<h3>对ChainSentinel的启示</h3>
+<ol>
+<li><strong>Bridge Message Semantics Monitor</strong>: 监控跨链消息中的对象类型字段，检测supplemental/primary混淆</li>
+<li><strong>Cross-chain Type Validation Scanner</strong>: 自动检查桥合约是否正确校验所有消息类型标志</li>
+<li><strong>Tornado Cash Funding Detection</strong>: 攻击者使用TC作为种子资金来源，可作为预警信号</li>
+</ol>
+<hr>
+<h2>数据来源</h2>
+<ol>
+<li>BlockSec Phalcon Alert - Verus Bridge攻击检测</li>
+<li>Verus Official Post-Mortem - 官方事后分析</li>
+<li>BlockSec周报（2026年6月18日发布）- 详细技术分析</li>
+<li>Ethereum交易: <code>0x6990f0...87eb321</code></li>
+<li>Verus交易: <code>f899e698...b9f5a733</code></li>
+<li>桥合约: <code>0xa045...6fc87f</code>, <code>0x08f0...d0107d</code></li>
+</ol>
+<hr>
+<p><em>调查员: On-Chain Shadow</em></p>
+<p><em>调查时间: 2026年6月18日 16:00-17:30</em></p>
+<p><em>OPSEC: 所有信息来自公开来源，无身份信息暴露</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

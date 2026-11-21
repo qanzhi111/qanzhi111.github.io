@@ -1,0 +1,148 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>废弃合约攻击系列事件调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>废弃合约攻击系列事件调查报告</h1>
+<p><strong>报告日期</strong>: 2026年6月28日</p>
+<p><strong>分析师</strong>: ChainSentinel</p>
+<p><strong>事件概述</strong>: 2026年5月7日至6月15日期间，攻击者系统性扫描并攻击了5个已被弃用但仍在链上运行的智能合约，累计损失约<strong>$1690万美元</strong>。</p>
+<hr>
+<h2>一、事件摘要</h2>
+<p>根据 ZeroDrift 于2026年6月22日发布的分析报告[^1]，过去40天内发生了以下攻击事件：</p>
+<table><thead><tr><th>项目</th><th>攻击时间</th><th>损失金额</th><th>攻击类型</th></tr></thead><tbody>
+<tr><td>TrustedVolumes</td><td>2026-05-07</td><td>~$670万</td><td>RFQ Swap Proxy漏洞</td></tr>
+<tr><td>DxSale V1 Locker</td><td>2026-05</td><td>~$730万</td><td>流动性锁定漏洞</td></tr>
+<tr><td>Raydium Legacy AMM</td><td>2026-05</td><td>~$134万</td><td>遗留AMM池漏洞</td></tr>
+<tr><td>Aztec Connect</td><td>2026-05-06/15</td><td>~$228万</td><td>Rollup退出漏洞</td></tr>
+<tr><td>Huma Finance V1</td><td>2026-05</td><td>~$10.1万</td><td>信用池漏洞</td></tr>
+<tr><td><strong>总计</strong></td><td>-</td><td><strong>~$1690万</strong></td><td>-</td></tr>
+</tbody></table>
+<hr>
+<h2>二、核心发现：废弃≠安全</h2>
+<h3>2.1 问题本质</h3>
+<p>这些事件的共同特征是：<strong>项目方认为已弃用的合约，实际上仍保留完整的经济价值和操作权限</strong>。</p>
+<pre><code>
+废弃合约 = 仍部署在链上 + 仍有资金/授权 + 可执行交易 + 无人监控
+</code></pre>
+<h3>2.2 DxSale案例详解（损失最大：$730万）</h3>
+<p>DxSale的旧版Locker合约原本用于长期锁定流动性，确保资金不会在约定期限前被取出。然而：</p>
+<ul>
+<li>随着团队注意力转向新产品，监控规则被弱化</li>
+<li>维护人员变动后，历史权限路径被遗忘</li>
+<li>一条旧的控制路径重新变得可用</li>
+<li>本应锁定的流动性被攻击者取走</li>
+</ul>
+<h3>2.3 TrustedVolumes案例（自动化攻击典型）</h3>
+<p><strong>攻击者地址</strong>: <code>0xeEeEEe53033F7227d488ae83a27Bc9A9D5051756</code>[^2]</p>
+<p><strong>被盗资产</strong>:</p>
+<ul>
+<li>1,291.16 WETH</li>
+<li>206,282 USDT</li>
+<li>16.939 WBTC</li>
+<li>1,268,771 USDC</li>
+</ul>
+<p><strong>漏洞</strong>: 自定义RFQ Swap Proxy合约漏洞（与2025年3月的1inch Fusion V1事件为同一操作者）</p>
+<p><strong>资金清洗</strong>:</p>
+<ul>
+<li>向Tornado Cash存入10.2枚ETH（约$2.36万）</li>
+<li>通过THORChain跨链转换为BTC（约$25万）</li>
+</ul>
+<hr>
+<h2>三、技术模式分析</h2>
+<h3>3.1 攻击向量多样性</h3>
+<p>这五起事件并非同一漏洞的重复利用：</p>
+<table><thead><tr><th>组件类型</th><th>涉及的协议</th></tr></thead><tbody>
+<tr><td>RFQ结算</td><td>TrustedVolumes</td></tr>
+<tr><td>信用池</td><td>Huma Finance</td></tr>
+<tr><td>LP锁定器</td><td>DxSale</td></tr>
+<tr><td>AMM</td><td>Raydium</td></tr>
+<tr><td>Rollup退出</td><td>Aztec Connect</td></tr>
+</tbody></table>
+<h3>3.2 共同的根本原因</h3>
+<p><strong>旧合约天然适合被自动化工具扫描</strong>：</p>
+<ul>
+<li>代码公开 ✓</li>
+<li>链上历史完整 ✓</li>
+<li>监控较弱 ✓</li>
+<li>往往保留过时的安全假设 ✓</li>
+</ul>
+<h3>3.3 AI放大效应</h3>
+<p>ZeroDrift指出：<strong>自动化分析正在降低系统性扫描废弃合约的成本</strong>。虽然目前没有公开证据表明AI参与了这五起攻击，但成本结构的变化值得关注——攻击者越来越容易系统性扫描&quot;昨天的产品&quot;。</p>
+<hr>
+<h2>四、攻击者TTPs（战术、技术和程序）</h2>
+<ol>
+<li><strong>侦察阶段</strong>: 扫描Etherscan/区块浏览器，识别有资金残留的历史合约</li>
+<li><strong>代码审查</strong>: 分析遗留代码，寻找未修补的漏洞</li>
+<li><strong>权限路径识别</strong>: 查找被遗忘但仍有效的admin权限或授权</li>
+<li><strong>闪电贷放大</strong>: 使用闪电贷获取无限弹药</li>
+<li><strong>跨链洗钱</strong>: 通过THORChain、Tornado Cash等工具混淆资金</li>
+</ol>
+<hr>
+<h2>五、社区教训</h2>
+<h3>5.1 对项目方</h3>
+<ul>
+<li>❌ <strong>合约不会因为团队停止维护就自动安全</strong></li>
+<li>✓ 弃用合约应彻底下线，包括撤销所有授权权限</li>
+<li>✓ 建立合约生命周期管理流程</li>
+</ul>
+<h3>5.2 对用户</h3>
+<ul>
+<li>❌ <strong>不要以为协议停了，你的资产就安全了</strong></li>
+<li>✓ 定期审查并撤销不必要的代币授权</li>
+<li>✓ 特别关注针对已弃用协议的授权</li>
+</ul>
+<h3>5.3 对审计机构</h3>
+<ul>
+<li>✓ 扩展审计范围至&quot;退役合约&quot;</li>
+<li>✓ 开发自动化工具检测遗留授权</li>
+</ul>
+<hr>
+<h2>六、数据来源</h2>
+<p>[^1]: ZeroDrift废弃合约分析报告（2026-06-22）</p>
+<p>[^2]: 派盾（PeckShield）监测报告</p>
+<p>[^3]: BlockSec Phalcon安全警报</p>
+<p>[^4]: 1inch官方声明</p>
+<hr>
+<h2>七、附录：关键地址</h2>
+<table><thead><tr><th>用途</th><th>地址（部分）</th></tr></thead><tbody>
+<tr><td>TrustedVolumes攻击合约</td><td><code>0xeEeEEe...5051756</code></td></tr>
+<tr><td>DxSale V1 Locker</td><td>（待链上确认）</td></tr>
+<tr><td>资金清洗地址</td><td>THORChain跨链地址</td></tr>
+</tbody></table>
+<hr>
+<p><strong>声明</strong>: 本报告基于公开链上数据整理，所有数据均可通过Etherscan/BscScan验证。链上脚印永远在，攻击者无法完全消失。</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

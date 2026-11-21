@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taiko Bridge SGX密钥泄露攻击调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Taiko Bridge SGX密钥泄露攻击调查报告</h1>
+<p>&gt; 调查日期：2026-07-04</p>
+<p>&gt; 事件日期：2026-06-22</p>
+<p>&gt; 损失金额：~$1.7M</p>
+<p>&gt; 攻击链：GitHub密钥泄露 + SGX DEBUG模式绕过</p>
+<p>&gt; 链：Ethereum（Taiko L2 Bridge）</p>
+<p>&gt; ZachXBT覆盖状态：未覆盖</p>
+<hr>
+<h2>一、事件概述</h2>
+<p>2026年6月22日，Taiko（Ethereum Layer-2 rollup）的SGX证明验证流程被攻击，损失约170万美元。</p>
+<p>攻击者利用两个独立安全缺陷的组合：</p>
+<ol>
+<li><strong>运维失误</strong>：SGX enclave签名私钥被提交到公开GitHub仓库</li>
+<li><strong>合约漏洞</strong>：链上attestation合约未检查enclave的ATTRIBUTES字段（特别是DEBUG标志）</li>
+</ol>
+<p>二者叠加使攻击者能以DEBUG模式启动prover enclave，提取内部密钥，伪造L2状态证明，从桥接vault中提取资金。</p>
+<h2>二、项目背景</h2>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>项目名</td><td>Taiko</td></tr>
+<tr><td>类型</td><td>Ethereum Layer-2 Rollup</td></tr>
+<tr><td>组件</td><td>Raiko（多证明者堆栈）</td></tr>
+<tr><td>证明方式</td><td>SGX（Intel Software Guard Extensions）</td></tr>
+<tr><td>攻击合约</td><td>AutomataDcapV3Attestation (0x5e46...dd72)</td></tr>
+<tr><td>资金Vault</td><td>0x9962...15ab</td></tr>
+<tr><td>攻击交易1（注册）</td><td>0x2f44dc...277260</td></tr>
+<tr><td>攻击交易2（窃取）</td><td>0x017292...ae35ee</td></tr>
+</tbody></table>
+<h2>三、技术分析</h2>
+<h3>3.1 Taiko的SGX证明系统</h3>
+<p>Taiko使用SGX prover来验证L2状态：</p>
+<pre><code>
+物理机器(SGX Enclave)          链上(Ethereum)
+    │                              │
+    ├── 生成证明 ──────────────────→ 验证证明
+    ├── SGX Quote ────────────────→ DCAP验证
+    └── 签名结果 ──────────────────→ 接受/拒绝L2状态
+</code></pre>
+<p><strong>SGX Quote结构</strong>：</p>
+<ul>
+<li><code>header</code>：版本、密钥类型等元数据</li>
+<li><code>localEnclaveReport</code>：MRENCLAVE、MRSIGNER、<strong>ATTRIBUTES</strong>、reportData</li>
+<li><code>v3AuthData</code>：证书链、签名证明</li>
+</ul>
+<h3>3.2 Prover注册流程</h3>
+<pre><code>
+1. Prover提交DCAP quote → SgxVerifier.registerInstance()
+2. AutomataDcapV3Attestation.verifyParsedQuote()验证
+3. 从reportData前20字节读取prover地址
+4. 将地址加入授权实例集合
+</code></pre>
+<p><strong>三层信任链</strong>：</p>
+<ol>
+<li>SGX CPU验证SIGSTRUCT签名 → 确认MRENCLAVE和MRSIGNER</li>
+<li>DCAP证书链认证quote签名密钥 → 确认localEnclaveReport未被篡改</li>
+<li>Taiko证明验证器使用授权实例地址 → 验证后续证明签名</li>
+</ol>
+<h3>3.3 两个致命缺陷</h3>
+<p><strong>缺陷1：密钥泄露（运维失误）</strong></p>
+<ul>
+<li>Taiko/Raiko的enclave签名私钥被提交到<strong>公开GitHub仓库</strong></li>
+<li>MRSIGNER是对应公钥的哈希</li>
+<li>任何人可用泄露的密钥签署SIGSTRUCT，使MRSIGNER匹配白名单</li>
+</ul>
+<p><strong>缺陷2：缺少ATTRIBUTES检查（合约漏洞）</strong></p>
+<ul>
+<li>合约<code>AutomataDcapV3Attestation</code>未检查<code>localEnclaveReport.attributes</code></li>
+<li>SGX_FLAGS_DEBUG（0x02位）未被拒绝</li>
+<li>DEBUG模式允许宿主机/调试器读取enclave内存 → 密钥保护失效</li>
+</ul>
+<p><strong>Intel官方文档明确要求</strong>：验证方必须检查enclave属性以避免向DEBUG enclave下发秘密。</p>
+<h3>3.4 攻击链（5步）</h3>
+<pre><code>
+Step 1: 用泄露的enclave签名密钥签署SIGSTRUCT
+        → MRSIGNER匹配Taiko白名单 ✓
+
+Step 2: 以DEBUG属性运行enclave
+        → MRENCLAVE不变（DEBUG不属于MRENCLAVE）
+        → attributes = 0x07（包含DEBUG位0x02）
+
+Step 3: 调用registerInstance()提交SGX quote
+        → verifyParsedQuote()返回true（未检查attributes）
+        → 攻击者地址注册为授权实例 ✓
+
+Step 4: 从DEBUG enclave内存提取实例私钥
+        → 用该密钥签署恶意证明数据
+
+Step 5: 提交伪造证明
+        → L1合约接受不存在的L2状态
+        → 从vault释放桥接资金 ~$1.7M
+</code></pre>
+<h2>四、损失分析</h2>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>损失金额</td><td>~$1.7M</td></tr>
+<tr><td>攻击交易（注册）</td><td>0x2f44dc...277260</td></tr>
+<tr><td>攻击交易（窃取）</td><td>0x017292...ae35ee</td></tr>
+<tr><td>漏洞合约</td><td>AutomataDcapV3Attestation (0x5e46...dd72)</td></tr>
+<tr><td>资金Vault</td><td>0x9962...15ab</td></tr>
+</tbody></table>
+<h2>五、独特分析角度</h2>
+<h3>5.1 &quot;TEE信任链的每一层都必须独立验证&quot;</h3>
+<p>Taiko事件揭示了一个系统性问题：<strong>有效的远程证明签名链无法弥补未检查的运行时属性</strong>。</p>
+<p>信任链模型：</p>
+<pre><code>
+SGX硬件保证 ─→ Quote签名验证 ─→ MRENCLAVE/MRSIGNER检查 ─→ ???缺失???
+                                                              ↑
+                                                    ATTRIBUTES检查
+                                                    （生产环境必须拒绝DEBUG）
+</code></pre>
+<p>类比：就像验了身份证是真的（签名有效），查了名字是对的（MRENCLAVE匹配），但没看身份证上写的是&quot;实习&quot;还是&quot;正式&quot;（DEBUG vs 生产）。</p>
+<h3>5.2 与同类TEE攻击对比</h3>
+<table><thead><tr><th>事件</th><th>漏洞层</th><th>根因</th></tr></thead><tbody>
+<tr><td>Taiko</td><td>属性检查缺失</td><td>GitHub密钥泄露 + DEBUG标志未拒绝</td></tr>
+<tr><td>Secret Network ICS20</td><td>通道验证缺失</td><td>跨链消息验证逻辑缺陷</td></tr>
+<tr><td>Axelar-Secret</td><td>中间人</td><td>轻客户端验证不完整</td></tr>
+</tbody></table>
+<p>共同点：TEE/密码学证明系统的<strong>最弱环节永远是实现，而非理论</strong>。</p>
+<h3>5.3 &quot;运维失误×合约漏洞&quot;的必要条件组合</h3>
+<pre><code>
+仅有密钥泄露（无ATTRIBUTES缺陷）：
+  → 攻击者能签署SIGSTRUCT，但只能用生产enclave
+  → enclave内存受保护，无法提取密钥
+  → 攻击失败
+
+仅有ATTRIBUTES缺陷（无密钥泄露）：
+  → 攻击者可以DEBUG模式运行
+  → 但MRSIGNER不匹配白名单
+  → registerInstance()验证失败
+  → 攻击失败
+
+两者组合 = 灾难
+</code></pre>
+<p>这是经典的<strong>瑞士奶酪模型</strong>失效：每一层安全机制都有一个洞，当所有洞对齐时，攻击穿透全部防线。</p>
+<h3>5.4 ChainSentinel关联</h3>
+<p>Taiko事件验证了&quot;AI Agent链上安全监控&quot;的价值：</p>
+<ol>
+<li><strong>GitHub密钥泄露扫描</strong>：可自动检测公开仓库中的私钥/签名密钥</li>
+<li><strong>合约属性检查审计</strong>：可自动化验证attestation合约是否检查了所有必要字段</li>
+<li><strong>TEE部署监控</strong>：可实时监控SGX quote的属性字段，发现DEBUG模式注册</li>
+</ol>
+<h2>六、经验教训</h2>
+<ol>
+<li><strong>密钥管理是安全的基础</strong> — 签名密钥永远不应出现在代码仓库</li>
+<li><strong>远程证明必须检查所有属性</strong> — 签名链有效 ≠ 运行时安全</li>
+<li><strong>TEE信任链每层必须独立验证</strong> — 不能依赖下层保证来跳过上层检查</li>
+<li><strong>生产环境必须拒绝DEBUG</strong> — Intel文档明确要求，合约必须强制执行</li>
+</ol>
+<h2>七、同期相关事件</h2>
+<p>同周还发生了SecondFi Ed25519漏洞（$2.4M），两起事件共同证明：</p>
+<p>&gt; 密码学信任模型可因实现层面的疏忽而被瓦解。</p>
+<p>BlockSec总结标题精准：</p>
+<p>&gt; &quot;签名完全合法，私钥却被人算了出来&quot;</p>
+<h2>八、数据来源</h2>
+<ol>
+<li>BlockSec安碣 - 《签名完全合法，私钥却被人算了出来 $4.1M》(2026-07-02)</li>
+</ol>
+<p>http://m.toutiao.com/group/7657731356478276139/</p>
+<ol>
+<li>Gate.io News - 《以太坊基金会削减40%预算，Taiko遭170万美元黑客攻击》(2026-06-30)</li>
+</ol>
+<p>https://www.gate51.cloud/zh/news/detail/ethereum-foundation-cuts-budget-40-as-taiko-suffers-17m-hack-22212465</p>
+<ol>
+<li>BlockSec - 《六月最贵的三起被盗，没有一个是被&quot;黑&quot;进去的》(2026-07-04)</li>
+</ol>
+<p>https://blog.csdn.net/BlockSec/article/details/162558629</p>
+<hr>
+<p><em>本报告基于公开来源信息整理，仅供安全研究参考。</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

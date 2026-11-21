@@ -1,0 +1,333 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StakeDAO vsdCRV 无限铸币攻击事件链上调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>StakeDAO vsdCRV 无限铸币攻击事件链上调查报告</h1>
+<p><strong>报告日期</strong>: 2026年5月28日</p>
+<p><strong>事件类型</strong>: 私钥泄露导致无限铸币攻击</p>
+<p><strong>涉及平台</strong>: Arbitrum</p>
+<p><strong>损失金额</strong>: ~$91,000 (43.78 ETH)</p>
+<hr>
+<h2>执行摘要</h2>
+<p>2026年5月27日，StakeDAO 基于 Arbitrum 的 vsdCRV 合约遭受攻击。攻击者利用泄露的部署者私钥，通过操纵 LayerZero v2 OFT peer 配置，在 Arbitrum 上铸造了约 <strong>5.446万亿枚 vsdCRV</strong>，并成功提取约 <strong>$91,000</strong>（43.78 ETH）。本次攻击的根本原因是 <strong>操作安全失败</strong>，而非智能合约代码漏洞。</p>
+<hr>
+<h2>事件概述</h2>
+<h3>基本信息</h3>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td><strong>受害协议</strong></td><td>StakeDAO</td></tr>
+<tr><td><strong>受攻击代币</strong></td><td>vsdCRV (Vote Boosted sdCRV)</td></tr>
+<tr><td><strong>攻击网络</strong></td><td>Arbitrum One</td></tr>
+<tr><td><strong>攻击日期</strong></td><td>2026年5月27日</td></tr>
+<tr><td><strong>攻击时间</strong></td><td>~09:17 UTC</td></tr>
+<tr><td><strong>铸造代币数量</strong></td><td>5,446,744,073,709.551615 vsdCRV</td></tr>
+<tr><td><strong>实际损失</strong></td><td>~$91,000 (43.78 ETH)</td></tr>
+<tr><td><strong>代币价格影响</strong></td><td>vsdCRV 流动性池严重失衡</td></tr>
+</tbody></table>
+<h3>事件定性</h3>
+<ul>
+<li><strong>攻击类型</strong>: 私钥泄露 + 跨链消息伪造</li>
+<li><strong>漏洞性质</strong>: 操作安全失败（非智能合约漏洞）</li>
+<li><strong>利用机制</strong>: LayerZero OFT peer 配置被篡改</li>
+</ul>
+<hr>
+<h2>攻击时间线重建</h2>
+<h3>完整攻击序列</h3>
+<pre><code>
+[T-?] 攻击者获取部署者私钥
+  ↓
+[T-0] 攻击者使用部署者私钥 (0x000755Fbe4A24d7478bfcFC1E561AfCE82d1ff62)
+      在 Arbitrum 上调用 setPeer() 重配置 LayerZero OFT
+  ↓
+[T+25s] 攻击者部署的恶意合约发送伪造的 LayerZero 跨链消息
+  ↓
+[T+25s+] Arbitrum vsdCRV 合约铸造 5.446万亿 vsdCRV 到攻击者地址
+  ↓
+[T+immediate] 攻击者通过 MetaMask Router 兑换 vsdCRV → ETH
+  ↓
+[T+later] 攻击者将 ~43.78 ETH 桥接至 Ethereum 主网
+  ↓
+[最终地址] ETH 最终到达: 0xeF3C...aa25
+</code></pre>
+<h3>关键时间节点</h3>
+<table><thead><tr><th>时间 (UTC)</th><th>事件</th></tr></thead><tbody>
+<tr><td>2026-05-27 ~09:17:33</td><td>LayerZero setPeer 交易确认</td></tr>
+<tr><td>2026-05-27 ~09:17:58</td><td>vsdCRV 铸造交易执行</td></tr>
+<tr><td>2026-05-27 ~09:18:XX</td><td>代币Swap交易执行</td></tr>
+<tr><td>2026-05-27 ~09:XX:XX</td><td>ETH跨链桥接至Ethereum</td></tr>
+</tbody></table>
+<hr>
+<h2>链上追踪分析</h2>
+<h3>核心地址列表</h3>
+<table><thead><tr><th>角色</th><th>地址 (部分)</th><th>完整地址</th><th>说明</th></tr></thead><tbody>
+<tr><td><strong>部署者/受害者</strong></td><td>0x000755F...</td><td>0x000755Fbe4A24d7478bfcFC1E561AfCE82d1ff62</td><td>StakeDAO Arbitrum部署者钱包</td></tr>
+<tr><td><strong>攻击者 (Arbitrum)</strong></td><td>0x6dce9c4...</td><td>0x6dce9c4bae280f4b92c0e1a1d93528b6c67b0d83</td><td>接收铸造代币的地址</td></tr>
+<tr><td><strong>恶意合约 (Ethereum)</strong></td><td>-</td><td>攻击者部署</td><td>用于发送伪造跨链消息</td></tr>
+<tr><td><strong>攻击者最终地址</strong></td><td>0xeF3C...</td><td>0xeF3C...aa25 (部分)</td><td>ETH跨链后的收款地址</td></tr>
+<tr><td><strong>vsdCRV 合约</strong></td><td>0x62d5a59...</td><td>0x62d5a59e...8dcd2c833</td><td>Arbitrum 上的代币合约</td></tr>
+</tbody></table>
+<h3>资金流向图</h3>
+<pre><code>
+┌─────────────────────────────────────────────────────────────────────┐
+│                      攻击资金流向图                                   │
+└─────────────────────────────────────────────────────────────────────┘
+
+[泄露的部署者私钥]
+         │
+         ▼
+┌─────────────────────┐
+│  部署者钱包          │  0x000755F... (Arbitrum)
+│  (被控制)            │
+└─────────────────────┘
+         │ setPeer() 重配置
+         ▼
+┌─────────────────────┐
+│ vsdCRV OFT合约      │  篡改 peer → 指向恶意合约
+│ (Arbitrum)          │
+└─────────────────────┘
+         │
+         │ 伪造跨链消息
+         ▼
+┌─────────────────────┐     ┌─────────────────────┐
+│ 恶意合约 (Ethereum)  │ ──► │ vsdCRV合约 (Arbitrum) │
+│ (攻击者控制)          │ LZ  │ 铸造 5.446T vsdCRV  │
+└─────────────────────┘ MSG └─────────────────────┘
+                                        │
+                                        ▼
+                              ┌─────────────────────┐
+                              │ 攻击者地址           │ 0x6dce9c4... (Arbitrum)
+                              │ 5.446T vsdCRV       │
+                              └─────────────────────┘
+                                        │
+                                        │ Swap via MetaMask Router
+                                        ▼
+                              ┌─────────────────────┐
+                              │ ~16.83M vsdCRV      │  ≈ 43.78 ETH
+                              │ 兑换为 ETH          │
+                              └─────────────────────┘
+                                        │
+                                        │ 跨链桥接 (LayerZero)
+                                        ▼
+                              ┌─────────────────────┐
+                              │ 最终ETH地址          │ 0xeF3C...aa25 (Ethereum)
+                              │ 43.78 ETH           │
+                              └─────────────────────┘
+
+[未变现部分]
+  ~5.446T - 16.83M ≈ 5.446T vsdCRV 留在攻击者地址
+  (流动性不足，无法继续兑换)
+</code></pre>
+<h3>关键交易哈希</h3>
+<table><thead><tr><th>交易类型</th><th>链</th><th>说明</th></tr></thead><tbody>
+<tr><td><strong>setPeer TX</strong></td><td>Arbitrum</td><td>重配置 LayerZero peer</td></tr>
+<tr><td><strong>Mint TX</strong></td><td>Arbitrum</td><td>铸造 5.446T vsdCRV</td></tr>
+<tr><td><strong>Swap TX</strong></td><td>Arbitrum</td><td>vsdCRV → ETH 兑换</td></tr>
+<tr><td><strong>Bridge TX</strong></td><td>Ethereum</td><td>ETH 跨链转账</td></tr>
+</tbody></table>
+<p>&gt; 注: 具体交易哈希需从 Blockaid 官方发布链接获取 (https://arbiscan.io)</p>
+<hr>
+<h2>技术分析</h2>
+<h3>vsdCRV 代币机制</h3>
+<p><strong>vsdCRV (Vote Boosted sdCRV)</strong> 是 StakeDAO 的流动性质押衍生品:</p>
+<ul>
+<li>与 Curve Finance 的 CRV 治理代币挂钩</li>
+<li>通过 StakeDAO 的 &quot;Boosted Vote Strategy&quot; 增强投票权</li>
+<li>使用 LayerZero v2 OFT 标准实现跨链互通</li>
+</ul>
+<h3>攻击机制详解</h3>
+<h3>1. LayerZero OFT 工作原理</h3>
+<p>LayerZero OFT (Omnichain Fungible Token) 使用跨链铸造/销毁机制:</p>
+<ul>
+<li>代币在一个链上销毁，在另一个链上铸造</li>
+<li>依赖 <strong>peer 配置</strong> 验证跨链消息的合法性</li>
+<li>peer 是每个链上注册的&quot;信任地址&quot;</li>
+</ul>
+<h3>2. 攻击向量</h3>
+<pre><code>
+正常流程:
+┌──────────────┐     跨链消息      ┌──────────────┐
+│ Ethereum     │ ──────────────► │ Arbitrum     │
+│ vsdCRVOFTAdapter │  (peer验证)   │ vsdCRV代币   │
+│ (合法合约)    │                 │ (铸造)        │
+└──────────────┘                 └──────────────┘
+
+攻击流程:
+┌──────────────┐     跨链消息      ┌──────────────┐
+│ 恶意合约     │ ──────────────► │ Arbitrum     │
+│ (攻击者控制)  │  (peer被篡改)   │ vsdCRV代币   │
+└──────────────┘                 └──────────────┘
+        ▲                              │
+        │                              │
+        └────── setPeer() 篡改 ────────┘
+              (使用泄露私钥)
+</code></pre>
+<h3>3. 关键漏洞点</h3>
+<table><thead><tr><th>漏洞类型</th><th>描述</th><th>严重程度</th></tr></thead><tbody>
+<tr><td><strong>单点故障</strong></td><td>peer 配置由单一私钥控制，无多签保护</td><td>高</td></tr>
+<tr><td><strong>无延迟机制</strong></td><td>配置变更后立即生效，无 timelock</td><td>高</td></tr>
+<tr><td><strong>无额度限制</strong></td><td>铸造功能缺乏最大供应量检查</td><td>高</td></tr>
+<tr><td><strong>跨链信任滥用</strong></td><td>伪造消息被 OFT 合约误认为合法</td><td>高</td></tr>
+</tbody></table>
+<h3>漏洞根因分析</h3>
+<p><strong>不是智能合约漏洞，而是操作安全失败</strong></p>
+<p>Sodot 联合创始人 Shalev Keren 指出:</p>
+<p>&gt; &quot;There is no smart contract bug here and no flaw in LayerZero. There is one private key, controlling one privileged configuration function, with no multisig and no delay between the configuration change going through and the mint clearing onchain.&quot;</p>
+<hr>
+<h2>影响评估</h2>
+<h3>直接财务影响</h3>
+<table><thead><tr><th>项目</th><th>数值</th></tr></thead><tbody>
+<tr><td><strong>铸造代币总量</strong></td><td>5,446,744,073,709.55 vsdCRV</td></tr>
+<tr><td><strong>代币理论价值</strong></td><td>~$763 billion (按攻击时价格)</td></tr>
+<tr><td><strong>实际兑换金额</strong></td><td>~43.78 ETH</td></tr>
+<tr><td><strong>实际损失</strong></td><td>~$91,000</td></tr>
+<tr><td><strong>未变现代币</strong></td><td>~5.446T vsdCRV (流动性不足)</td></tr>
+</tbody></table>
+<h3>受影响范围</h3>
+<h3>1. 直接受害者</h3>
+<ul>
+<li><strong>StakeDAO 协议</strong>: vsdCRV 代币信任度受损</li>
+<li><strong>LP 提供者</strong>: vsdCRV/sdCRV 流动性池面临失衡</li>
+<li><strong>sdCRV 持有者</strong>: 代币基础价值存疑</li>
+</ul>
+<h3>2. 关联协议</h3>
+<table><thead><tr><th>协议</th><th>受影响情况</th></tr></thead><tbody>
+<tr><td><strong>Curve Finance</strong></td><td>警告 LlamaLend asdCRV 仓位用户立即退出</td></tr>
+<tr><td><strong>Beefy Finance</strong></td><td>暂停 Arbitrum Convex CRV/csdCRV/asdCRV 金库</td></tr>
+<tr><td><strong>Convex Finance</strong></td><td>潜在的 CRV 战争竞争格局变化</td></tr>
+</tbody></table>
+<h3>3. 市场影响</h3>
+<ul>
+<li><strong>SDT 代币</strong>: 24小时内下跌约 6.6%</li>
+<li><strong>交易量</strong>: SDT 交易量激增 400%+</li>
+<li><strong>市场信心</strong>: Curve 生态系统连锁反应</li>
+</ul>
+<hr>
+<h2>与其他事件的关联</h2>
+<h3>2026年 DeFi 私钥泄露事件时间线</h3>
+<table><thead><tr><th>日期</th><th>项目</th><th>损失金额</th><th>攻击类型</th></tr></thead><tbody>
+<tr><td>2026年初</td><td>Resolv</td><td>~$80M</td><td>Mint 漏洞</td></tr>
+<tr><td>2026年4月</td><td>KelpDAO</td><td>~$292M</td><td>LayerZero 漏洞</td></tr>
+<tr><td>2026年4月</td><td>Drift Protocol</td><td>~$285M</td><td>(Solana)</td></tr>
+<tr><td>2026年4月</td><td>Wasabi Protocol</td><td>~$5.5M</td><td>私钥泄露</td></tr>
+<tr><td><strong>2026年5月27日</strong></td><td><strong>StakeDAO</strong></td><td><strong>~$91K</strong></td><td><strong>私钥泄露</strong></td></tr>
+</tbody></table>
+<h3>共同特征</h3>
+<ol>
+<li><strong>非合约漏洞</strong>: 所有事件均非智能合约代码问题</li>
+<li><strong>操作密钥风险</strong>: 都是部署者/管理员密钥被泄露</li>
+<li><strong>LayerZero 滥用</strong>: KelpDAO 和 StakeDAO 都涉及 OFT 配置操纵</li>
+<li><strong>审计无效</strong>: 涉事项目均通过安全审计</li>
+</ol>
+<h3>KelpDAO vs StakeDAO 对比</h3>
+<table><thead><tr><th>特征</th><th>KelpDAO</th><th>StakeDAO</th></tr></thead><tbody>
+<tr><td><strong>损失金额</strong></td><td>$292M</td><td>$91K</td></tr>
+<tr><td><strong>漏洞位置</strong></td><td>DVN配置错误</td><td>peer配置被篡改</td></tr>
+<tr><td><strong>LayerZero责任</strong></td><td>配置错误</td><td>无责任 (私钥问题)</td></tr>
+<tr><td><strong>攻击者收益</strong></td><td>巨大</td><td>有限 (流动性限制)</td></tr>
+</tbody></table>
+<hr>
+<h2>攻击者分析</h2>
+<h3>地址画像</h3>
+<p><strong>攻击者 (Arbitrum)</strong></p>
+<ul>
+<li>地址: <code>0x6dce9c4bae280f4b92c0e1a1d93528b6c67b0d83</code></li>
+<li>行为模式:</li>
+<li>快速执行攻击序列</li>
+<li>立即兑换流动性</li>
+<li>跨链转移资金</li>
+<li>手法: 专业且高效</li>
+</ul>
+<p><strong>最终收款地址 (Ethereum)</strong></p>
+<ul>
+<li>部分地址: <code>0xeF3C...aa25</code></li>
+<li>PeckShield 追踪确认</li>
+<li>资金可能进一步分散</li>
+</ul>
+<h3>归属调查</h3>
+<ul>
+<li>目前尚无明确归属</li>
+<li>攻击手法与 2026年其他 LayerZero 相关攻击相似</li>
+<li>建议持续监控该地址的后续活动</li>
+</ul>
+<hr>
+<h2>调查报告总结</h2>
+<h3>关键发现</h3>
+<ol>
+<li><strong>攻击性质</strong>: 私钥泄露 + LayerZero OFT peer 操纵</li>
+<li><strong>损失规模</strong>: 铸造 5.446T vsdCRV，实际获利 ~$91K</li>
+<li><strong>根本原因</strong>: 单一私钥控制关键配置，无多签/延迟保护</li>
+<li><strong>漏洞利用</strong>: 跨链消息伪造，触发无背书代币铸造</li>
+</ol>
+<h3>风险指标</h3>
+<table><thead><tr><th>指标</th><th>评级</th></tr></thead><tbody>
+<tr><td><strong>财务损失</strong></td><td>中等 ($91K)</td></tr>
+<tr><td><strong>信任损害</strong></td><td>高</td></tr>
+<tr><td><strong>系统性风险</strong></td><td>中等</td></tr>
+<tr><td><strong>可追溯性</strong></td><td>高 (完整链上记录)</td></tr>
+</tbody></table>
+<h3>预防建议</h3>
+<p><strong>对于 DeFi 协议:</strong></p>
+<ul>
+<li>关键配置变更必须使用多签钱包</li>
+<li>实施 timelock 延迟机制</li>
+<li>定期轮换部署者密钥</li>
+<li>监控异常配置变更</li>
+</ul>
+<p><strong>对于用户:</strong></p>
+<ul>
+<li>评估协议的密钥管理实践</li>
+<li>优先选择有完善治理的协议</li>
+<li>关注协议安全公告</li>
+<li>避免在安全事件期间交互受影响的代币</li>
+</ul>
+<hr>
+<h2>参考来源</h2>
+<ol>
+<li>Blockaid - 攻击实时监控推文</li>
+<li>PeckShield - 代币交换与桥接追踪</li>
+<li>BlockSec - 攻击向量分析</li>
+<li>Sodot - 技术根因分析</li>
+<li>The Defiant - 事件综合报道</li>
+<li>Protos - 市场影响分析</li>
+<li>CoinDesk - 事件背景</li>
+<li>StakeDAO 官方推特 (@StakeDAOHQ)</li>
+<li>Curve Finance 官方警告</li>
+</ol>
+<hr>
+<p><strong>调查完成时间</strong>: 2026年5月28日</p>
+<p><strong>调查人员</strong>: Chain Investigation Agent</p>
+<p><strong>报告版本</strong>: v1.0</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

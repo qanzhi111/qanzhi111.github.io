@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TesseraDAO Security Incident Investigation Report</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>TesseraDAO Security Incident Investigation Report</h1>
+<p><strong>Date:</strong> June 2, 2026</p>
+<p><strong>Loss Amount:</strong> ~$2.5M USDT</p>
+<p><strong>Status:</strong> Project Team Unresponsive</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>On June 1, 2026, TesseraDAO was attacked on BNB Chain. The attacker minted approximately 99 million TSR tokens and quickly dumped them, causing the token price to crash 99%, dropping from normal price to approximately $0.0002. The project team has not released any official statement to date.</p>
+<hr>
+<h2>Attack Vector Analysis</h2>
+<h3>Attack Path</h3>
+<ol>
+<li><strong>Minting Phase</strong>: Attacker minted 99,000,000 TSR tokens through the project&#x27;s smart contract</li>
+<li><strong>Exchange Phase</strong>: Swapped TSR for approximately 2.5 million USDT on decentralized exchanges</li>
+<li><strong>Cross-Chain Phase</strong>: Bridged stolen funds from BNB Chain to Ethereum</li>
+<li><strong>Money Laundering Phase</strong>: Obfuscated 1,285.5 ETH transactions through Tornado Cash</li>
+</ol>
+<h3>Technical Details</h3>
+<table><thead><tr><th>Metric</th><th>Data</th></tr></thead><tbody>
+<tr><td>Attacker Address</td><td><code>0x2201037A1755eC48eC5f00Fea21A10A9E56f2Dd8</code> (BSC)</td></tr>
+<tr><td>Minted Token Amount</td><td>99,000,000 TSR</td></tr>
+<tr><td>Illicit Gains</td><td>~2,500,000 USDT</td></tr>
+<tr><td>Tornado Cash Laundering</td><td>1,285.5 ETH</td></tr>
+</tbody></table>
+<hr>
+<h2>Key Suspicion: Likely Rug Pull</h2>
+<p>On-chain analysts strongly suspect this was not an external hack but <strong>insider involvement or privilege abuse</strong>:</p>
+<ul>
+<li>Minting privileges and MultiTransfer functionality are exclusively controlled by deployer-related addresses</li>
+<li>Attacker address has connections to the project deployer</li>
+<li>Project team remains silent—a typical Rug Pull characteristic</li>
+<li>Not discovered and publicly disclosed by security firms until 19 hours later</li>
+</ul>
+<hr>
+<h2>2026 BNB Chain Attack Pattern Comparison</h2>
+<table><thead><tr><th>Project</th><th>Date</th><th>Loss</th><th>Pattern</th></tr></thead><tbody>
+<tr><td>DxSale</td><td>Early June</td><td>$7.3M</td><td>Legacy architecture + ownership transfer</td></tr>
+<tr><td>TesseraDAO</td><td>June 2</td><td>$2.5M</td><td>Mint+dump+suspected insider</td></tr>
+<tr><td>Specter</td><td>May</td><td>~$2M</td><td>Token contract vulnerability</td></tr>
+</tbody></table>
+<hr>
+<h2>Data Sources</h2>
+<ul>
+<li>PeckShieldAlert: https://x.com/PeckShieldAlert/status/2061713210210988434</li>
+<li>CryptoCompass: https://cryptocompass.com/articles/tesseradao-hack-drains-2-5-million-as-tsr-token-crashes-nearly-99-on-bnb-chain</li>
+<li>BSCScan: https://bscscan.com/address/0x2201037A1755eC48eC5f00Fea21A10A9E56f2Dd8</li>
+</ul>
+<hr>
+<h2>Risk Warnings</h2>
+<ol>
+<li><strong>Beware of &quot;Centralized Mint Authority&quot;</strong>: If projects retain single-point minting capability, user funds are never safe</li>
+<li><strong>Pay Attention to Project Silence</strong>: Projects that don&#x27;t respond after an attack are often心虚 (guilty) Rug Pulls</li>
+<li><strong>DeFi Security Requires Systematic Auditing</strong>: Pre-launch audits alone are insufficient for long-term security</li>
+</ol></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

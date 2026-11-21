@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecondFi (Yoroi) 钱包Ed25519签名漏洞调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>SecondFi (Yoroi) 钱包Ed25519签名漏洞调查报告</h1>
+<p>&gt; 调查日期：2026-07-04</p>
+<p>&gt; 事件日期：2026-06-23</p>
+<p>&gt; 损失金额：~$2.4M（1600万 ADA）</p>
+<p>&gt; 受影响钱包：374个</p>
+<p>&gt; 攻击者数量：2名独立攻击者</p>
+<p>&gt; ZachXBT覆盖状态：未覆盖</p>
+<hr>
+<h2>一、事件概述</h2>
+<p>2026年6月23日，EMURGO旗下Cardano钱包SecondFi（原名Yoroi）披露其Ed25519签名实现存在致命缺陷。钱包的签名代码在计算签名nonce时遗漏了唯一的秘密输入，使每个签名都退化为一个简单的线性方程，攻击者可直接从公开的链上交易数据恢复私钥。</p>
+<p>两名独立攻击者分别清空了374个钱包，共窃取约1600万ADA（~$2.4M）。EMURGO随后紧急抢救了另外1.29亿ADA（~$19M）。</p>
+<h2>二、项目背景</h2>
+<table><thead><tr><th>项目</th><th>详情</th></tr></thead><tbody>
+<tr><td>项目名</td><td>SecondFi（前身：Yoroi）</td></tr>
+<tr><td>开发方</td><td>EMURGO（Cardano三大创始实体之一）</td></tr>
+<tr><td>用户量</td><td>超过100万用户</td></tr>
+<tr><td>更名时间</td><td>2026年4月（Yoroi → SecondFi）</td></tr>
+<tr><td>受影响版本</td><td>v10.0.3 至 v10.0.6</td></tr>
+<tr><td>漏洞上线时间</td><td>2026年6月8日</td></tr>
+<tr><td>修复版本</td><td>v10.0.6.2</td></tr>
+<tr><td>链</td><td>Cardano</td></tr>
+</tbody></table>
+<h2>三、技术分析</h2>
+<h3>3.1 Ed25519签名规范（正确实现）</h3>
+<p>Ed25519签名方案中，签名者持有：</p>
+<ul>
+<li><code>k_L</code>：签名标量（私钥）</li>
+<li><code>k_R</code>：秘密nonce前缀</li>
+</ul>
+<p>对于消息M，正确的签名nonce计算：</p>
+<pre><code>
+r = SHA-512(k_R ∥ M) mod L
+</code></pre>
+<p>由于<code>k_R</code>是秘密的，即使M在广播后公开，r对观察者仍不可知。</p>
+<p>最终签名(R, s)：</p>
+<pre><code>
+R = r·B  (B为Ed25519基点)
+s ≡ r + H·k_L (mod L)
+H = SHA-512(R ∥ A ∥ M) mod L
+</code></pre>
+<p>安全性核心：若r不可预测，签名方程s ≡ r + H·k_L有两个未知数(k_L和r)，无法求解。</p>
+<h3>3.2 SecondFi的致命缺陷</h3>
+<p>SecondFi的实现将签名nonce计算为：</p>
+<pre><code>
+r = SHA-512(M) mod L    ← 错误！去掉了k_R
+</code></pre>
+<p>正确应为：</p>
+<pre><code>
+r = SHA-512(k_R ∥ M) mod L    ← 正确
+</code></pre>
+<p>仅遗漏了一个哈希输入（k_R），后果是灾难性的：</p>
+<ul>
+<li>M是公开的交易消息 → r变得可计算</li>
+<li>r已知 → 签名方程变为单未知数线性方程</li>
+<li>k_L可直接求解：<code>k_L ≡ (s − r)·H⁻¹ (mod L)</code></li>
+</ul>
+<p><strong>这不是在破解密码学，是在做基础模运算。</strong></p>
+<h3>3.3 攻击流程（6步恢复私钥）</h3>
+<p>整个攻击可完全离线完成：</p>
+<ol>
+<li><strong>识别目标</strong>：扫描使用v10.0.3-v10.0.6签署交易的地址</li>
+<li><strong>提取签名</strong>：从链上获取公开签名组件(R, s)，重构消息M</li>
+<li><strong>计算nonce</strong>：<code>r = SHA-512(M) mod L</code></li>
+<li><strong>计算挑战</strong>：<code>H = SHA-512(R ∥ A ∥ M) mod L</code></li>
+<li><strong>求解私钥</strong>：<code>k_L ≡ (s − r)·H⁻¹ (mod L)</code></li>
+<li><strong>签署转账</strong>：用恢复的k_L签署交易，清空钱包</li>
+</ol>
+<p><strong>关键洞察</strong>：这不是在逆向哈希或求解离散对数。有缺陷的实现直接暴露了r，使密钥恢复简化为一次除法运算。</p>
+<h2>四、损失分析</h2>
+<table><thead><tr><th>类别</th><th>金额</th></tr></thead><tbody>
+<tr><td>被盗ADA</td><td>1600万 ADA (~$2.4M)</td></tr>
+<tr><td>受影响钱包</td><td>374个</td></tr>
+<tr><td>EMURGO抢救</td><td>1.29亿 ADA (~$19M)</td></tr>
+<tr><td>攻击者1</td><td>171个钱包（两波攻击）</td></tr>
+<tr><td>攻击者2</td><td>203个钱包（独立行动）</td></tr>
+</tbody></table>
+<h2>五、归因分析</h2>
+<p>两名攻击者独立行动（非协同），但都具备：</p>
+<ul>
+<li>对Ed25519签名数学的深入理解</li>
+<li>大规模链上数据扫描能力</li>
+<li>快速识别受影响版本的能力</li>
+</ul>
+<p>攻击不遵循典型链上攻击序列（无前端交互、无钓鱼），完全是离线密码分析+链上转账。</p>
+<h2>六、独特分析角度</h2>
+<h3>6.1 与Nonce Reuse攻击的对比</h3>
+<table><thead><tr><th></th><th>Nonce Reuse（如PSBT事件）</th><th>SecondFi</th></tr></thead><tbody>
+<tr><td>原因</td><td>两次签名用了相同nonce</td><td>每次nonce都可从公开数据计算</td></tr>
+<tr><td>恢复方式</td><td>联立两个方程求解</td><td>单个签名即可恢复</td></tr>
+<tr><td>攻击条件</td><td>需要找到重复nonce的交易对</td><td>只需一笔交易+公开消息</td></tr>
+<tr><td>影响范围</td><td>重复使用nonce的地址</td><td>所有使用该版本签名的地址</td></tr>
+</tbody></table>
+<p>SecondFi比传统nonce reuse更严重：<strong>每个签名都是一个完整的密钥泄露</strong>。</p>
+<h3>6.2 &quot;一行代码毁了一个百万美元钱包&quot;</h3>
+<p>根因对比：</p>
+<ul>
+<li>JaredFromSubway蜜罐：MEV bot未验证授权消耗 → $15M</li>
+<li>Aztec Connect：ZK验证器numTxs参数绑定缺陷 → $2.1M</li>
+<li>SecondFi：SHA-512输入少了k_R → $2.4M</li>
+</ul>
+<p>三者共同点：<strong>密码学信任模型因实现层面的疏忽而瓦解</strong>。</p>
+<h3>6.3 ChainSentinel关联</h3>
+<p>这个事件完美验证了&quot;AI Agent链上独立审计&quot;的市场需求：</p>
+<ul>
+<li>钱包签名实现审计是AI Agent可自动化的任务</li>
+<li>Ed25519规范vs实现的差异检测是明确的规则匹配</li>
+<li>如果能提前扫描npm/PyPI上的加密库实现，可以在部署前发现此类缺陷</li>
+</ul>
+<h2>七、经验教训</h2>
+<ol>
+<li><strong>永远不要自己实现签名逻辑</strong> — 使用经过审计的标准库</li>
+<li><strong>对规范的任何偏离都可能是致命的</strong> — 少一个哈希输入 = 全部私钥泄露</li>
+<li><strong>生产级密码学代码必须独立审计</strong> — 特别是密钥派生和签名操作</li>
+<li><strong>修复后必须生成全新密钥</strong> — 导入助记词到修复版钱包不能保护已暴露地址</li>
+</ol>
+<h2>八、数据来源</h2>
+<ol>
+<li>BlockSec安碣 - 《签名完全合法，私钥却被人算了出来 $4.1M》(2026-07-02)</li>
+</ol>
+<p>http://m.toutiao.com/group/7657731356478276139/</p>
+<ol>
+<li>BlockSec - 《六月最贵的三起被盗，没有一个是被&quot;黑&quot;进去的》(2026-07-03/07-04)</li>
+</ol>
+<p>https://blog.csdn.net/BlockSec/article/details/162558629</p>
+<ol>
+<li>CSDN - 《AI让链上漏洞猎人快100倍》(2026-07-03)</li>
+</ol>
+<p>https://blog.csdn.net/2503_92390076/article/details/162211354</p>
+<hr>
+<p><em>本报告基于公开来源信息整理，仅供安全研究参考。</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

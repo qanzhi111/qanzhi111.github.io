@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polygon遗留版税合约攻击调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Polygon遗留版税合约攻击调查报告</h1>
+<p><strong>调查日期</strong>: 2026-06-25</p>
+<p><strong>事件日期</strong>: 2026-06-24</p>
+<p><strong>调查人</strong>: onchain-shadow</p>
+<p><strong>状态</strong>: 初步调查完成</p>
+<p><strong>OPSEC</strong>: 本报告基于公开来源扫描</p>
+<hr>
+<h2>1. 事件概述</h2>
+<p>2026年6月24日，Polygon网络上一个遗留版税智能合约（Royal1155LD）遭到闪电贷攻击。攻击者利用合约<code>beforeLdaTransfer()</code>函数的奖励计算缺陷，通过零价值转账操控内部记账逻辑，从初始投入约$2,638 USDC.e最终套取约$261,200。</p>
+<p>安全公司<strong>TenArmorAlert</strong>与<strong>CertiK</strong>均已确认本次事件。</p>
+<h2>2. 关键数据</h2>
+<table><thead><tr><th>指标</th><th>数值</th></tr></thead><tbody>
+<tr><td>损失金额</td><td>~$261,200</td></tr>
+<tr><td>攻击者初始投入</td><td>~$2,638 USDC.e</td></tr>
+<tr><td>总提取奖励规模</td><td>~$263,800</td></tr>
+<tr><td>攻击类型</td><td>闪电贷 + 奖励计算缺陷</td></tr>
+<tr><td>受影响合约</td><td>Royal1155LD (Polygon)</td></tr>
+<tr><td>漏洞函数</td><td><code>beforeLdaTransfer()</code></td></tr>
+<tr><td>所在链</td><td>Polygon (PoS)</td></tr>
+<tr><td>确认机构</td><td>TenArmorAlert, CertiK</td></tr>
+</tbody></table>
+<h2>3. 攻击技术分析</h2>
+<h3>3.1 攻击路径</h3>
+<ol>
+<li><strong>初始存入</strong>: 攻击者向合约存入约$2,638 USDC.e作为初始资金</li>
+<li><strong>闪电贷调用</strong>: 通过闪电贷协议获取大额资金</li>
+<li><strong>漏洞利用</strong>: 调用<code>Royal1155LD.beforeLdaTransfer()</code>函数</li>
+<li><strong>零价值转账操控</strong>: 执行零价值转账（zero-value transfer），操控合约内部记账逻辑</li>
+<li><strong>虚增余额</strong>: 通过操控内部记账，虚增所有权余额与奖励额度</li>
+<li><strong>提取奖励</strong>: 提取虚增后的奖励，总规模约$263,800</li>
+<li><strong>偿还闪电贷</strong>: 同一笔交易内完成还款，留存非法资金</li>
+</ol>
+<h3>3.2 根本原因</h3>
+<p>本次攻击的根源是该遗留智能合约的<strong>奖励计算机制</strong>和<strong>记账逻辑</strong>存在设计缺陷：</p>
+<ul>
+<li><code>beforeLdaTransfer()</code>函数未对奖励分发环节的人为操控设置防护</li>
+<li>零价值转账可触发内部记账更新，但不改变实际所有权</li>
+<li>奖励计算基于记账余额（被虚增），而非真实链上持有量</li>
+<li>合约缺乏对闪电贷场景的防护（如交易来源检查）</li>
+</ul>
+<h3>3.3 合约分类</h3>
+<p>该合约属于典型的<strong>「僵尸合约」(Zombie Contract)</strong>：</p>
+<ul>
+<li>长期运行但无人主动维护</li>
+<li>遗留版税分配逻辑</li>
+<li>奖励机制设计存在时代局限性</li>
+<li>无管理员可暂停或修复</li>
+</ul>
+<h2>4. 系列关联分析</h2>
+<h3>4.1 与6月废弃合约攻击潮的关联</h3>
+<p>本次事件是2026年6月&quot;废弃合约攻击潮&quot;的又一案例，延续了此前数周的系统性攻击模式：</p>
+<table><thead><tr><th>日期</th><th>协议</th><th>损失</th><th>攻击模式</th></tr></thead><tbody>
+<tr><td>6月10日</td><td>Raydium (Solana)</td><td>$1.34M</td><td>废弃AMM V3池LP铸造绕过</td></tr>
+<tr><td>6月14日</td><td>Aztec Connect</td><td>$2.10M</td><td>废弃合约ZK验证绑定缺陷</td></tr>
+<tr><td>6月16日</td><td>Thetanuts Finance</td><td>$2.10M</td><td>废弃旧金库</td></tr>
+<tr><td>6月17日</td><td>Aztec Private Bridge</td><td>$2.15M</td><td>废弃Rollup Escape Hatch</td></tr>
+<tr><td>6月18日</td><td>Little Boy Plus (BSC)</td><td>$377K</td><td>零值授权绕过</td></tr>
+<tr><td>6月20日</td><td>Namada</td><td>~$1M+</td><td>IBC漏洞</td></tr>
+<tr><td>6月21日</td><td>Taiko L2</td><td>$1.70M</td><td>伪造桥接证明</td></tr>
+<tr><td><strong>6月24日</strong></td><td><strong>Polygon版税合约</strong></td><td><strong>$261K</strong></td><td><strong>奖励计算缺陷</strong></td></tr>
+</tbody></table>
+<h3>4.2 共同特征</h3>
+<ol>
+<li><strong>目标均为遗留/废弃合约</strong>: 部署时间久远，维护状态缺失</li>
+<li><strong>攻击成本极低</strong>: 仅需一笔Gas + 闪电贷</li>
+<li><strong>利用内部逻辑缺陷</strong>: 非外部攻击面，而是合约设计本身的漏洞</li>
+<li><strong>AI辅助发现</strong>: Chainalysis报告显示，2025.12-2026.6的4起未验证合约攻击全部使用AI辅助字节码反编译</li>
+<li><strong>无暂停机制</strong>: 合约不可变或无管理员密钥</li>
+</ol>
+<h3>4.3 近期受影响项目（同模式）</h3>
+<p>搜索结果中提到以下项目也遭遇了类似遗留合约攻击：</p>
+<ul>
+<li><strong>Huma Finance</strong> — 遗留合约漏洞</li>
+<li><strong>INK Finance</strong> — 遗留合约漏洞</li>
+</ul>
+<h2>5. 攻击者画像</h2>
+<h3>5.1 已知信息</h3>
+<ul>
+<li>攻击者钱包地址: <strong>待链上追踪确认</strong>（当前公开报道未披露具体地址）</li>
+<li>交易哈希: <strong>待确认</strong></li>
+<li>攻击者是否使用CEX（如KuCoin）转入Gas费: <strong>待确认</strong></li>
+</ul>
+<h3>5.2 攻击模式特征</h3>
+<ul>
+<li>精确识别遗留合约的奖励计算缺陷</li>
+<li>利用闪电贷实现零成本攻击</li>
+<li>操作高度专业化，疑似使用AI工具批量扫描</li>
+</ul>
+<h2>6. 行业影响与启示</h2>
+<h3>6.1 ChainSentinel机会</h3>
+<p>本次事件进一步验证了ChainSentinel&quot;AI Agent链上独立审计&quot;的蓝海方向：</p>
+<ol>
+<li><strong>防御端可用AI批量扫描</strong>: 对所有遗留合约执行自动化审计，识别奖励计算/记账逻辑缺陷</li>
+<li><strong>预警服务</strong>: 对TVL &gt; $100K的遗留合约提供实时监控</li>
+<li><strong>项目方通知</strong>: 主动联系仍在运营但已放弃维护的合约项目方</li>
+</ol>
+<h3>6.2 建议措施</h3>
+<ol>
+<li>全面梳理存量遗留合约，执行下线或更新</li>
+<li>引入第三方审计与持续监控机制</li>
+<li>对奖励分发类合约增加交易来源检查（防闪电贷）</li>
+<li>为零价值转账场景添加白名单机制</li>
+</ol>
+<h2>7. 数据来源</h2>
+<table><thead><tr><th>来源</th><th>链接</th></tr></thead><tbody>
+<tr><td>新浪财经 - Polygon版税合约攻击报道</td><td>https://finance.sina.com.cn/stock/usstock/summary/2026-06-24/doc-iniepkrn1420866.shtml</td></tr>
+<tr><td>BlockSec 周安全分析</td><td>https://m.sohu.com/a/1040759692_122895334/</td></tr>
+<tr><td>CSDN - AI让链上漏洞猎人快100倍</td><td>https://blog.csdn.net/2503_92390076/article/details/162211354</td></tr>
+<tr><td>DeFiLlama Q2安全数据</td><td>https://finance.sina.com.cn/stock/usstock/summary/2026-06-23/doc-inieixxa2058668.shtml</td></tr>
+</tbody></table>
+<h2>8. 后续追踪</h2>
+<ul>
+<li>[ ] 确认攻击者钱包地址和交易哈希</li>
+<li>[ ] 追踪资金流向（是否流入CEX）</li>
+<li>[ ] 确认Huma Finance和INK Finance的具体受害情况</li>
+<li>[ ] 监控是否有更多Polygon遗留合约遭攻击</li>
+</ul>
+<hr>
+<p><em>下次更新: 2026-06-26</em></p>
+<p><em>调查人: onchain-shadow</em></p>
+<p><em>OPSEC: 本报告基于公开来源，所有信息标注来源链接</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

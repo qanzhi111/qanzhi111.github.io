@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humanity Protocol $36M Exploit 调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Humanity Protocol $36M Exploit 调查报告</h1>
+<p><strong>日期</strong>: 2026-06-10</p>
+<p><strong>状态</strong>: 持续追踪中</p>
+<p><strong>损失金额</strong>: $36M+</p>
+<p><strong>攻击类型</strong>: 多签钱包私钥泄露 + 恶意合约升级</p>
+<hr>
+<h2>事件概要</h2>
+<p>Humanity Protocol ($H) 于2026年6月9日遭遇重大安全漏洞，攻击者通过获取基金会成员私钥，成功控制跨链桥多签钱包，窃取超过$36M资产。代币价格从$0.73暴跌至$0.05，跌幅超90%。</p>
+<hr>
+<h2>时间线</h2>
+<table><thead><tr><th>时间</th><th>事件</th></tr></thead><tbody>
+<tr><td>2026-06-02</td><td>$H触及历史高点 $0.8439</td></tr>
+<tr><td>2026-06-06</td><td>项目方启动H Staking，吸引大量新投资者</td></tr>
+<tr><td>2026-06-08 20:00</td><td>攻击开始，17+钱包被掏空</td></tr>
+<tr><td>2026-06-09 凌晨</td><td>攻击蔓延至BNB Chain</td></tr>
+<tr><td>2026-06-09 上午</td><td>项目方公告私钥泄露</td></tr>
+<tr><td>2026-06-09 全天</td><td>ZachXBT发布分析，质疑事件性质</td></tr>
+</tbody></table>
+<hr>
+<h2>技术分析</h2>
+<h3>攻击路径</h3>
+<p><strong>第一阶段：以太坊链</strong></p>
+<ol>
+<li>攻击者获取3/6 Gnosis Safe签名</li>
+<li>将ProxyAdmin所有权转移至恶意地址</li>
+<li>单笔交易盗取141.2M H代币</li>
+<li>通过DEX兑换为ETH</li>
+</ol>
+<p><strong>第二阶段：BNB Chain</strong></p>
+<ol>
+<li>同样获取3/5 Gnosis Safe签名</li>
+<li>接管H代币ProxyAdmin合约</li>
+<li>部署恶意合约，无限mint新代币</li>
+<li>Mint 200M H代币（100M × 2次）</li>
+</ol>
+<h3>攻击者地址</h3>
+<p><strong>被盗钱包地址</strong>（来源：Specter/Arkham）：</p>
+<pre><code>
+0x456Cb73b35022E4B524e5510807776453d984AeF
+0xee4B6B8967Aa947ac3aEf540eE07ea6099C566F7
+0xAf2a4989922299EB14A29E332dad1012A8aaD3A0
+0x1dfe5cF3ED5a0AC82FDD0bFCdaC7B6C6323f844a
+0xD1ea823D421E0c829ee11F772AF487fd352678EA
+</code></pre>
+<p><strong>攻击者当前持有</strong>（来源：Lookonchain）：</p>
+<ul>
+<li>18,510 ETH ≈ $30.83M</li>
+<li>1,548 BNB ≈ $924K</li>
+<li>111.36M H代币 ≈ $14M（尚未完全抛售）</li>
+<li><strong>总计约$45M+</strong></li>
+</ul>
+<h3>资金流向</h3>
+<p>攻击者通过以下路径洗钱：</p>
+<ol>
+<li>DEX（Uniswap/PancakeSwap/Kyber）兑换为ETH/BNB</li>
+<li>THORChain跨链</li>
+<li>Wasabi Mixer</li>
+<li>Tornado Cash</li>
+<li>Umbra隐私协议</li>
+</ol>
+<hr>
+<h2>ZachXBT 分析</h2>
+<h3>初期观点（已修正）</h3>
+<p>&gt; &quot;The &#x27;incident&#x27; seems possibly staged. I am not buying the team&#x27;s story. It&#x27;s a convenient way for the active market maker to have exited.&quot;</p>
+<p><strong>质疑要点</strong>：</p>
+<ul>
+<li>攻击者钱包预资金数周（来源：CEX + Mixer）</li>
+<li>所有抛售仅发生在DEX，未使用CEX</li>
+<li>代币高度集中，存在活跃做市商</li>
+<li>代币解锁时间与攻击时间吻合（6月25日）</li>
+</ul>
+<h3>修正立场</h3>
+<p>经进一步分析，ZachXBT确认：</p>
+<ul>
+<li>做市商/OTC活动与私钥泄露为<strong>独立事件</strong></li>
+<li>攻击确为外部私钥泄露导致</li>
+</ul>
+<h3>持续质疑</h3>
+<p>即使修正立场，ZachXBT仍要求项目方：</p>
+<ul>
+<li>披露与香港实体做市协议的详细信息</li>
+<li>解释团队数周&quot;犯罪式拉盘&quot;行为</li>
+</ul>
+<hr>
+<h2>项目背景（值得关注的Red Flags）</h2>
+<h3>创办人历史</h3>
+<ul>
+<li><strong>Terence Kwok</strong>：2012年创办Tink Labs（Handy），获$170M投资（软银、富士康等）</li>
+<li>Handy 2020年破产倒闭</li>
+<li>据报道，软银发现潜在资金挪用后撤资</li>
+<li>2019年欠薪100+欧洲/中东/非洲员工</li>
+</ul>
+<h3>项目问题</h3>
+<ol>
+<li><strong>88% Bot用户</strong>：代币Fairdrop后两天，有报告称Kwok承认9M Human IDs中仅约1M完成生物验证</li>
+<li><strong>代码来源存疑</strong>：社区发现代码与深圳某门禁公司相关</li>
+<li><strong>身份验证外包</strong>：生物验证服务外包给上海公司，引发隐私担忧</li>
+<li><strong>FDV虚高</strong>：$H崩盘前FDV曾达$7B</li>
+</ol>
+<hr>
+<h2>市场影响</h2>
+<table><thead><tr><th>指标</th><th>崩盘前</th><th>崩盘后</th><th>变化</th></tr></thead><tbody>
+<tr><td>$H价格</td><td>$0.73</td><td>$0.05</td><td>-93%</td></tr>
+<tr><td>市值</td><td>$2B</td><td>$35.7M</td><td>-98%</td></tr>
+<tr><td>FDV</td><td>$7B</td><td>$1.2B</td><td>-83%</td></tr>
+</tbody></table>
+<hr>
+<h2>与同类事件对比</h2>
+<table><thead><tr><th>项目</th><th>日期</th><th>损失</th><th>攻击类型</th><th>共同点</th></tr></thead><tbody>
+<tr><td>Drift Protocol</td><td>Apr 2026</td><td>$285M</td><td>私钥泄露</td><td>DPRK APT</td></tr>
+<tr><td>KelpDAO</td><td>Apr 2026</td><td>$293M</td><td>价格预言机</td><td>跨链桥</td></tr>
+<tr><td><strong>Humanity</strong></td><td><strong>Jun 2026</strong></td><td><strong>$36M</strong></td><td><strong>多签+私钥</strong></td><td><strong>新近事件</strong></td></tr>
+</tbody></table>
+<hr>
+<h2>安全建议</h2>
+<ol>
+<li><strong>多签安全</strong>：关键操作应使用硬件钱包 + 地理分布</li>
+<li><strong>私钥隔离</strong>：备份不应存放在联网设备</li>
+<li><strong>DEX流动性风险</strong>：依赖单一DEX流动性增加风险</li>
+<li><strong>做市商披露</strong>：项目方应透明披露流动性提供者</li>
+</ol>
+<hr>
+<h2>数据来源</h2>
+<ul>
+<li><a href="https://www.coindesk.cc/">CoinDesk - Humanity Protocol事件报道</a></li>
+<li><a href="https://thedefiant.io/news/hacks/humanity-protocol-36m-hack-private-key-foundation-laptop">The Defiant - 36M Hack</a></li>
+<li><a href="https://www.woofun.ai/en/news/detail/97931">Woofun AI - 分析报告</a></li>
+<li><a href="https://tokenist.com/zachxbt-humanity-crypto-protocol-hack-crypto-etf-risk/">Tokenist - ZachXBT分析</a></li>
+<li><a href="https://arkhamintelligence.com/">Arkham Intelligence - 链上数据</a></li>
+<li><a href="https://lookonchain.com/">LookonChain - 攻击者钱包追踪</a></li>
+<li><a href="https://twitter.com/zachxbt">ZachXBT Twitter</a></li>
+</ul>
+<hr>
+<h2>后续追踪</h2>
+<ul>
+<li>[ ] 攻击者是否会被识别</li>
+<li>[ ] Tether/USDC是否会冻结相关地址</li>
+<li>[ ] 项目方是否提供补偿方案</li>
+<li>[ ] 香港做市商协议真相</li>
+<li>[ ] 6月25日代币解锁是否会再次引发抛压</li>
+</ul></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

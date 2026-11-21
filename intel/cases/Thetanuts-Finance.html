@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thetanuts Finance 废弃金库攻击 — 调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Thetanuts Finance 废弃金库攻击 — 调查报告</h1>
+<p><em>调查日期: 2026-07-03</em></p>
+<p><em>事件日期: 2026-06-16</em></p>
+<p><em>调查状态: 初步调查完成</em></p>
+<hr>
+<h2>事件概要</h2>
+<p>2026年6月16日，Thetanuts Finance（结构化产品协议）多年前废弃的旧金库合约遭到攻击，损失约$210万。这是2026年6月&quot;废弃合约攻击浪潮&quot;中的典型案例——与Raydium Legacy AMM（$134万）、Aztec Connect（$430万两次）等事件属同一趋势。</p>
+<hr>
+<h2>关键数据</h2>
+<table><thead><tr><th>指标</th><th>数据</th></tr></thead><tbody>
+<tr><td>损失金额</td><td>~$210万</td></tr>
+<tr><td>攻击目标</td><td>多年前废弃的旧金库合约</td></tr>
+<tr><td>攻击成本</td><td>一笔Gas费</td></tr>
+<tr><td>合约状态</td><td>已废弃但仍持有TVL</td></tr>
+<tr><td>攻击者地址</td><td>待追踪</td></tr>
+</tbody></table>
+<hr>
+<h2>背景：废弃合约攻击浪潮</h2>
+<h3>40天内5起攻击共$1690万</h3>
+<p>根据ZeroDrift（2026年6月22日）的分析，2026年5月7日至6月15日期间，攻击者从5个已弃用但仍在链上运行的智能合约中盗走约$1690万：</p>
+<table><thead><tr><th>日期</th><th>协议</th><th>损失</th><th>合约状态</th><th>漏洞类型</th></tr></thead><tbody>
+<tr><td>5月7日</td><td>TrustedVolumes</td><td>$587万</td><td>废弃</td><td>RFQ结算缺陷</td></tr>
+<tr><td>5月15日</td><td>Huma Finance V1</td><td>$10.1万</td><td>废弃池</td><td>信用池漏洞</td></tr>
+<tr><td>5月17日</td><td>DxSale V1 Locker</td><td>$730万</td><td>旧版locker</td><td>旧控制路径重新可用</td></tr>
+<tr><td>6月10日</td><td>Raydium Legacy AMM</td><td>$134万</td><td>2021年废弃</td><td>LP铸造绕过</td></tr>
+<tr><td>6月14日</td><td>Aztec Connect (攻击1)</td><td>$210万</td><td>2022年退役</td><td>ZK验证绑定缺陷</td></tr>
+<tr><td>6月16日</td><td><strong>Thetanuts Finance</strong></td><td><strong>$210万</strong></td><td><strong>多年前废弃</strong></td><td><strong>旧金库漏洞</strong></td></tr>
+<tr><td>6月17日</td><td>Aztec Private Bridge</td><td>$215万</td><td>退役Rollup</td><td>Escape Hatch滥用</td></tr>
+<tr><td>6月18日</td><td>Little Boy Plus</td><td>$37.7万</td><td>活跃协议</td><td>0值transferFrom绕过</td></tr>
+</tbody></table>
+<h3>Chainalysis 6月报告关键数据</h3>
+<ul>
+<li>2025年12月至2026年6月：4起针对未验证合约的攻击共盗走<strong>$3670万</strong></li>
+<li><strong>全部使用了AI辅助的字节码反编译技术</strong></li>
+<li>AI驱动反编译器（Dedaub、Heimdall等）将&quot;发现-分析-攻击&quot;周期从数周压缩到数十小时</li>
+<li>一个攻击者用AI工具链，一周能扫描<strong>10万个合约</strong></li>
+</ul>
+<hr>
+<h2>攻击方法论</h2>
+<h3>标准攻击流程（AI辅助废弃合约猎杀）</h3>
+<pre><code>
+第一步：批量发现目标
+  工具: Etherscan/BscScan API
+  筛选条件:
+    - 部署时间: 2021-2023年
+    - 仍有ETH或代币余额
+    - 最后交易时间 &gt; 6个月
+    - Verified = False（未验证合约优先）
+
+第二步：字节码反编译
+  工具: Dedaub、Heimdall、Etherscan Bytecode-to-Opcode
+  能力: 批量扫描数千个未验证合约，自动发现漏洞模式
+
+第三步：漏洞验证
+  工具: 交易模拟、fork测试
+  确认: 漏洞可利用 + 资产可提取
+
+第四步：执行攻击
+  成本: 一笔Gas费
+  速度: 秒级完成
+</code></pre>
+<h3>共同漏洞模式</h3>
+<ol>
+<li><strong>合约已废弃但链上残留资产</strong> — 没人能暂停或修复</li>
+<li><strong>旧的验证逻辑在废弃后变得可绕过</strong> — 安全假设过时</li>
+<li><strong>无管理员密钥</strong> — 无法紧急响应</li>
+<li><strong>不可变合约</strong> — &quot;不可变=安全&quot;的假设被证伪</li>
+</ol>
+<hr>
+<h2>技术分析</h2>
+<h3>为什么&quot;不可变≠安全&quot;</h3>
+<p>开发者的传统思维：</p>
+<pre><code>
+不可变合约 = 没人能修改 = 安全
+</code></pre>
+<p>现实：</p>
+<pre><code>
+不可变合约 + 没有管理员 + 停止维护 = 
+  合约有数百万资产 + 没人能暂停 + 没人能修复 = 攻击者的提款机
+</code></pre>
+<h3>为什么废弃合约特别危险</h3>
+<ol>
+<li><strong>无人监控</strong>: 团队注意力转向新产品，旧合约告警规则被弱化</li>
+<li><strong>维护人员变动</strong>: 了解旧合约的人已离职</li>
+<li><strong>历史假设过时</strong>: 2021年的安全假设在2026年已不成立</li>
+<li><strong>权限路径被遗忘</strong>: 旧的控制路径重新变得可用而无人知晓</li>
+</ol>
+<hr>
+<h2>防御建议</h2>
+<h3>对协议方</h3>
+<ol>
+<li><strong>建立合约退役流程</strong>:</li>
+</ol>
+<ul>
+<li>资金迁移完毕后，确保合约余额为0</li>
+<li>撤销所有外部授权和权限</li>
+<li>在合约上标记为deprecated（即使不可变）</li>
+<li>通知用户移除对该合约的交互</li>
+</ul>
+<ol>
+<li><strong>定期审计残留资产</strong>:</li>
+</ol>
+<ul>
+<li>扫描所有历史部署的合约</li>
+<li>检查是否仍有TVL</li>
+<li>评估是否有可提取路径</li>
+</ul>
+<ol>
+<li><strong>设置监控覆盖</strong>:</li>
+</ol>
+<ul>
+<li>不要只监控活跃合约</li>
+<li>对已废弃合约保持基础监控</li>
+</ul>
+<h3>对用户</h3>
+<ol>
+<li>检查是否仍与已废弃合约有交互授权</li>
+<li>定期撤销不必要的ERC-20 approve</li>
+<li>如果持有的结构化产品在废弃合约中，考虑迁移</li>
+</ol>
+<hr>
+<h2>系统性风险评估</h2>
+<h3>潜在目标范围</h3>
+<p>根据Chainalysis和ZeroDrift的分析框架，以下类型的合约属于高风险：</p>
+<ul>
+<li><strong>部署于2021-2023年</strong></li>
+<li><strong>未验证源码（Verified = False）</strong></li>
+<li><strong>仍有资产余额（ETH/ERC-20）</strong></li>
+<li><strong>最后交易超过6个月</strong></li>
+<li><strong>无管理员/暂停功能</strong></li>
+</ul>
+<p>保守估计，以太坊上满足以上条件的合约数量在<strong>数千个</strong>级别。</p>
+<h3>攻击者经济学</h3>
+<table><thead><tr><th>指标</th><th>数据</th></tr></thead><tbody>
+<tr><td>扫描成本</td><td>接近零（API调用费）</td></tr>
+<tr><td>反编译成本</td><td>接近零（AI工具自动化）</td></tr>
+<tr><td>攻击成本</td><td>一笔Gas费（~$5-50）</td></tr>
+<tr><td>平均收益</td><td>$134万-$730万/起</td></tr>
+<tr><td>ROI</td><td>数千倍</td></tr>
+</tbody></table>
+<hr>
+<h2>与ChainSentinel的关联</h2>
+<p>这一趋势直接验证了ChainSentinel的核心价值主张：</p>
+<ol>
+<li><strong>AI Agent链上行为审计</strong>需求真实存在</li>
+<li><strong>自动化扫描废弃合约</strong>是可行的攻击向量</li>
+<li>防守方需要同样的自动化工具来管理&quot;昨天的责任&quot;</li>
+<li>&quot;合约退役审计&quot;是一个尚未被开发的安全服务品类</li>
+</ol>
+<hr>
+<h2>数据来源</h2>
+<ol>
+<li>ZeroDrift分析 (2026-06-22): &quot;黑客盯上废弃合约，40天偷走1700万美元&quot;</li>
+<li>CSDN深度分析 (2026-07-01): &quot;AI让链上漏洞猎人快100倍&quot;</li>
+<li>Chainalysis 6月报告（引用数据）</li>
+<li>零时科技6月安全月报 (2026-07-01)</li>
+<li>BlockSec安全周报 (2026-06-25): Zcash Orchard漏洞 + 本周事件概览</li>
+</ol>
+<hr>
+<p><em>本报告基于公开信息编制</em></p>
+<p><em>OPSEC声明: 不暴露调查者身份</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

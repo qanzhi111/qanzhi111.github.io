@@ -1,0 +1,231 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aztec Connect &quot;僵尸合约&quot;漏洞利用调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Aztec Connect &quot;僵尸合约&quot;漏洞利用调查报告</h1>
+<h2>事件概要</h2>
+<table><thead><tr><th>字段</th><th>内容</th></tr></thead><tbody>
+<tr><td>事件名称</td><td>Aztec Connect RollupProcessorV3 合约漏洞利用</td></tr>
+<tr><td>发生时间</td><td>2026年6月14日 12:26 UTC</td></tr>
+<tr><td>所在区块</td><td>Ethereum Block #25,315,715</td></tr>
+<tr><td>损失金额</td><td>~$2.19M</td></tr>
+<tr><td>攻击类型</td><td>ZK证明验证逻辑与L1结算逻辑不匹配</td></tr>
+<tr><td>攻击者地址</td><td><code>0x0f18d8b44a740272f0be4d08338d2b165b7edd17</code></td></tr>
+<tr><td>攻击交易</td><td><code>0x074ec9317d8336db37e8c348fbdd7515573ff4088239c77ab429f522509aeeb1</code></td></tr>
+<tr><td>目标合约</td><td>Aztec Connect Router (RollupProcessorV3)</td></tr>
+<tr><td>资金来源</td><td>Tornado Cash</td></tr>
+<tr><td>发现方</td><td>CertiK (13:52 UTC)</td></tr>
+</tbody></table>
+<hr>
+<h2>一、事件背景</h2>
+<h3>1.1 Aztec Connect 历史</h3>
+<p>Aztec Connect 是一个基于 Ethereum 的隐私 zkRollup 桥接协议，于 2022 年上线，允许用户在 DeFi 交互中获得一定程度的链上匿名性。</p>
+<ul>
+<li><strong>2022年</strong>: Aztec Connect 作为 DeFi 隐私桥上线</li>
+<li><strong>2023年3月</strong>: Aztec Labs 宣布弃用 Aztec Connect，资源转向新一代 Aztec Network</li>
+<li><strong>2024年</strong>: Aztec Labs 放弃所有管理权限，合约变为完全不可变（immutable）</li>
+<li><strong>2026年6月14日</strong>: 弃用3年后，合约仍持有 ~$2.19M 资产被攻击</li>
+</ul>
+<h3>1.2 &quot;僵尸合约&quot;概念</h3>
+<p>Aztec Connect 的合约在弃用后进入了一种特殊状态：</p>
+<ul>
+<li>合约代码仍在链上运行</li>
+<li>合约内仍持有用户未提取的资产</li>
+<li>合约完全不可变——无法暂停、升级或修改</li>
+<li>原始开发团队不再持有任何管理密钥</li>
+</ul>
+<p>这种&quot;僵尸合约&quot;状态意味着：代码永远在线，资产永远锁定，但无人能干预——无论好事还是坏事。</p>
+<hr>
+<h2>二、技术攻击分析</h2>
+<h3>2.1 漏洞根因</h3>
+<p>漏洞存在于 <code>RollupProcessorV3</code> 合约的 <code>processRollup()</code> 函数中。</p>
+<p><strong>核心问题：ZK证明验证逻辑与L1结算逻辑的不匹配</strong></p>
+<pre><code>
+processRollup() 函数存在两个独立的数据处理路径：
+1. ZK证明验证路径：验证 rollup 提交的零知识证明是否有效
+2. L1结算路径：根据证明结果在 Ethereum 上执行资产转移
+
+攻击者发现：这两个路径对交易数据（特别是 numRealTxs 参数）的处理方式不同。
+</code></pre>
+<h3>2.2 攻击手法</h3>
+<ol>
+<li><strong>构造恶意 rollup 证明</strong>：利用 <code>numRealTxs</code> 参数不匹配，构造一个能通过 ZK 验证但在结算时被不同解释的证明</li>
+</ol>
+<ol>
+<li><strong>绕过验证检查</strong>：</li>
+</ol>
+<ul>
+<li>存款验证被绕过（无需真实存款即可创建余额）</li>
+<li>签名验证被绕过（无需用户授权）</li>
+<li>提款验证被绕过（可提取未支撑的余额）</li>
+</ul>
+<ol>
+<li><strong>批量提取</strong>：攻击者使用了14个批量 rollup ID（13277 至 13290），在一次交易中完成所有提取操作</li>
+</ol>
+<ol>
+<li><strong>资产转移</strong>：从 Aztec Connect Router 合约中提取资金后，通过一系列交易转移至攻击者控制的地址</li>
+</ol>
+<h3>2.3 被盗资产明细</h3>
+<table><thead><tr><th>资产</th><th>数量</th><th>估算价值</th></tr></thead><tbody>
+<tr><td>ETH</td><td>908.99</td><td>~$1,565,000</td></tr>
+<tr><td>DAI</td><td>270,513</td><td>~$270,513</td></tr>
+<tr><td>wstETH</td><td>167.89</td><td>~$357,000</td></tr>
+<tr><td>yvDAI</td><td>少量</td><td>待评估</td></tr>
+<tr><td>yvWETH</td><td>少量</td><td>待评估</td></tr>
+<tr><td>LUSD</td><td>少量</td><td>待评估</td></tr>
+<tr><td>yvLUSD</td><td>少量</td><td>待评估</td></tr>
+<tr><td><strong>总计</strong></td><td></td><td><strong>~$2,190,000</strong></td></tr>
+</tbody></table>
+<hr>
+<h2>三、攻击者链上追踪</h2>
+<h3>3.1 攻击者地址</h3>
+<ul>
+<li><strong>EOA</strong>: <code>0x0f18d8b44a740272f0be4d08338d2b165b7edd17</code></li>
+<li><strong>资金来源</strong>: Tornado Cash（典型的攻击者资金混淆模式）</li>
+<li><strong>攻击交易</strong>: <code>0x074ec9317d8336db37e8c348fbdd7515573ff4088239c77ab429f522509aeeb1</code></li>
+</ul>
+<h3>3.2 攻击前准备</h3>
+<p>攻击者在执行漏洞利用之前，通过 Tornado Cash 为攻击钱包注入了 ETH 用于支付 gas 费用。这表明：</p>
+<ul>
+<li>攻击者具备高级链上操作能力</li>
+<li>有意识地使用混币器隐藏身份</li>
+<li>可能是专业攻击者或安全研究员</li>
+</ul>
+<h3>3.3 后续资金流向</h3>
+<p>（待进一步链上追踪，需要 Etherscan API 进行深度分析）</p>
+<hr>
+<h2>四、Aztec Labs 响应</h2>
+<h3>4.1 官方声明</h3>
+<p>Aztec Labs 在 CertiK 告警后迅速发布声明：</p>
+<p>&gt; &quot;Aztec Connect was deprecated 3 years ago. Aztec Labs holds no admin keys or control over the system; it cannot be paused or upgraded by us.&quot;</p>
+<p>关键要点：</p>
+<ul>
+<li>弃用3年，与当前 Aztec Network 完全隔离</li>
+<li>不影响 AZTEC ERC-20 代币</li>
+<li>不影响当前 Aztec Network 的智能合约</li>
+<li>团队无法暂停或升级系统</li>
+<li>用户曾多次被告知提取资金</li>
+</ul>
+<h3>4.2 不可逆性困境</h3>
+<p>这暴露了区块链&quot;不可变性&quot;的双刃剑特性：</p>
+<ul>
+<li>✅ 对于活跃协议：不可变性 = 抗审查、去信任</li>
+<li>❌ 对于弃用协议：不可变性 = 无法紧急暂停、无法回滚攻击</li>
+</ul>
+<p>Aztec Labs 在 2024 年放弃管理权限时，本意是让系统&quot;完全去信任化&quot;，但结果是为攻击者创造了一个不可关闭的提款机。</p>
+<hr>
+<h2>五、独特分析角度</h2>
+<h3>5.1 &quot;僵尸合约&quot;——DeFi 的长期安全隐患</h3>
+<p>Aztec Connect 事件不是孤例。本周同期还发生了：</p>
+<ul>
+<li><strong>Raydium AMM V3</strong> ($1.34M)：废弃流动性池被攻击</li>
+<li><strong>Hyperbridge</strong> ($2.5M)：跨链桥 MMR 验证漏洞</li>
+<li><strong>Syscoin Bridge</strong> ($8M)：5B SYS 非法铸造</li>
+</ul>
+<p><strong>模式识别</strong>：攻击者正在系统性地扫描&quot;休眠&quot;但仍持有资产的 DeFi 合约。这些合约具有以下特征：</p>
+<ol>
+<li>已被官方弃用或遗忘</li>
+<li>仍持有有意义的资产</li>
+<li>可能缺乏维护或监控</li>
+<li>可能不可暂停（增加了吸引力）</li>
+</ol>
+<h3>5.2 弃用 ≠ 安全终结</h3>
+<p>传统软件的生命周期终结意味着服务关闭、服务器下线。但在区块链上：</p>
+<ul>
+<li>合约永远不会&quot;下线&quot;</li>
+<li>合约内的资产可以被任何人尝试提取</li>
+<li>弃用只是&quot;团队不再维护&quot;，而非&quot;系统不再存在&quot;</li>
+</ul>
+<p><strong>行业教训</strong>：DeFi 协议需要正式的&quot;退役流程&quot;：</p>
+<ol>
+<li>提醒所有用户提取资金</li>
+<li>设定最终提款截止日期</li>
+<li>将剩余资产迁移至安全的多签钱包</li>
+<li>或者：在弃用前将合约余额清零</li>
+</ol>
+<h3>5.3 ZK 证明验证的&quot;最后一公里&quot;问题</h3>
+<p>Aztec Connect 的漏洞揭示了一个深层技术问题：即使 ZK 证明系统本身是安全的，证明验证与链上结算之间的&quot;绑定&quot;仍然可能出错。</p>
+<ul>
+<li>ZK 证明说：&quot;这些交易是有效的&quot;</li>
+<li>L1 结算说：&quot;根据这个不同的解释，让我给攻击者钱&quot;</li>
+</ul>
+<p>这种&quot;语义鸿沟&quot;在 ZK 系统中是一个新兴的攻击面，值得整个行业关注。</p>
+<hr>
+<h2>六、与已知事件的关联模式</h2>
+<table><thead><tr><th>事件</th><th>关联模式</th></tr></thead><tbody>
+<tr><td>Raydium AMM V3 ($1.34M, 6/11)</td><td>同为&quot;废弃合约&quot;攻击</td></tr>
+<tr><td>Hyperbridge ($2.5M)</td><td>跨链桥证明验证漏洞</td></tr>
+<tr><td>Syscoin Bridge ($8M)</td><td>跨链桥验证逻辑漏洞</td></tr>
+<tr><td>Token of Power ($1.58M)</td><td>治理参数设计缺陷</td></tr>
+<tr><td>StablR (~$10M)</td><td>代币铸造验证缺陷</td></tr>
+</tbody></table>
+<p><strong>2026年6月安全事件模式</strong>：</p>
+<ul>
+<li>从&quot;代码漏洞&quot;转向&quot;设计/架构/运营&quot;层面攻击</li>
+<li>弃用/遗留合约成为新兴攻击目标</li>
+<li>跨链桥证明验证成为系统性风险点</li>
+</ul>
+<hr>
+<h2>七、关键指标与时间线</h2>
+<pre><code>
+2022年     Aztec Connect 上线
+2023年3月  Aztec Labs 宣布弃用
+2024年     管理权限放弃，合约完全不可变
+2026年6月14日 12:26 UTC  攻击交易执行 (Block #25,315,715)
+2026年6月14日 13:52 UTC  CertiK 标记可疑交易
+2026年6月14日 ~14:00 UTC  Aztec Labs 发布声明
+2026年6月15日            AZTEC 代币价格 $0.01586（+5.2%，几乎未受影响）
+</code></pre>
+<hr>
+<h2>八、数据来源</h2>
+<ol>
+<li>CertiK Alert: https://x.com/CertiKAlert/status/2066156825666543871</li>
+<li>Aztec Labs 声明: https://x.com/AztecLabs_/status/2066175340926345555</li>
+<li>Phalcon 安全分析: https://x.com/Phalcon_xyz/status/2066372912635097155</li>
+<li>CoinTelegraph: https://cointelegraph.com/news/aztec-connects-depreciated-smart-contract-exploited-for-2-million</li>
+<li>TheMerkle: https://themerkle.com/attacker-drains-2-1-million-from-deprecated-aztec-connect-contracts-in-ethereum-exploit/</li>
+<li>CryptoIP: https://cryip.co/aztec-connect-exploit-drains-2-19m-from-deprecated-protocol-aztec-network-safe/</li>
+<li>BeInCrypto: https://www.coindesk.cc/attacker-drains-2-1-million-from-aztec-connect-3-years-after-its-shutdown-63625.html</li>
+<li>Whale Alert: https://whale-alert.io/stories/c0c10197a8680c/Deprecated-Aztec-Connect-smart-contract-exploited-draining-about-21-million-from-Ethereum</li>
+<li>Etherscan 攻击交易: https://etherscan.io/tx/0x074ec9317d8336db37e8c348fbdd7515573ff4088239c77ab429f522509aeeb1</li>
+<li>Etherscan 攻击者地址: https://etherscan.io/address/0x0f18d8b44a740272f0be4d08338d2b165b7edd17</li>
+<li>重明链迹周报(0608-0614): http://m.toutiao.com/group/7651500686449902099/</li>
+</ol>
+<hr>
+<p><em>调查时间: 2026年6月15日 16:03-17:30</em></p>
+<p><em>调查状态: 初步报告，待链上深度追踪</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

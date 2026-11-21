@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raydium AMM V3 完整资金流法证分析报告（更新版）</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Raydium AMM V3 完整资金流法证分析报告（更新版）</h1>
+<p><strong>调查时间</strong>：2026-06-17</p>
+<p><strong>原始报告</strong>：2026-06-11</p>
+<p><strong>更新依据</strong>：ChainBounty完整法证分析（2026-06-15发布）</p>
+<p><strong>事件等级</strong>：中（$1.34M，但法证分析提供重要归因线索）</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>2026年6月10日，攻击者利用Raydium已废弃5年的AMM V3合约中缺失的LP mint地址验证逻辑，从5个遗留流动性池中抽取$1.34M资产。ChainBounty于6月15日发布的完整法证分析揭示了专业化的资金清洗链条——结构化拆分(peel chain) → 跨链桥接 → Tornado Cash混合——以及一个关键归因锚点：攻击者钱包的初始资金来自KuCoin KYC账户。</p>
+<hr>
+<h2>Attack Vector Analysis</h2>
+<h3>漏洞机制</h3>
+<p>Raydium AMM V3程序在<code>withdraw</code>函数中存在关键验证缺陷：接受LP Token作为提款凭证时，仅验证Token供应量，<strong>不验证mint地址是否为该池的合法LP Token</strong>。</p>
+<h3>攻击步骤</h3>
+<ol>
+<li>攻击者创建全新SPL Token mint（伪造LP Token，与任何Raydium池无关）</li>
+<li>铸造1个单位的伪造Token</li>
+<li>调用legacy <code>withdraw</code>函数，传入伪造mint地址</li>
+<li>旧合约接受伪造Token，将攻击者视为100% LP持有者，释放全部池资产</li>
+<li>对5个废弃池重复此操作</li>
+</ol>
+<h3>受影响池子</h3>
+<table><thead><tr><th>池子</th><th>损失资产</th></tr></thead><tbody>
+<tr><td>Sollet USDT-RAY</td><td>893,700 USDC</td></tr>
+<tr><td>Sollet ETH-RAY</td><td>ETH资产</td></tr>
+<tr><td>SRM-RAY</td><td>SRM资产</td></tr>
+<tr><td>USDC-RAY</td><td>USDC资产</td></tr>
+<tr><td>RAY-SOL</td><td>150,177 RAY + 5,603 SOL</td></tr>
+<tr><td><strong>总计</strong></td><td><strong>~$1.34M</strong></td></tr>
+</tbody></table>
+<p><strong>技术定性</strong>：非零日漏洞、非私钥泄露、非权限提升——纯粹是已弃用代码中的输入验证缺失。2026年3月一项对8,714个仅含字节码的Solana合约的符号执行研究已标记467个存在潜在bug，缺失key/mint验证是最常见的失败模式之一。</p>
+<hr>
+<h2>Fund Flow：完整法证重建</h2>
+<p><em>来源：ChainBounty法证分析，基于Solana主链1,058笔交易、372个地址的链上追踪</em></p>
+<h3>关键地址</h3>
+<table><thead><tr><th>角色</th><th>地址</th></tr></thead><tbody>
+<tr><td><strong>攻击者主钱包</strong></td><td><code>4WnPebowR4HHfumvNPaDjG6Pa5Hi1jxLm6xmmBq33QVk</code></td></tr>
+<tr><td>DEX Swap Hub</td><td><code>5m2LUcmZqA26QxzALdrZqiVoFAkrVKji4FFfzzLKn9pa</code></td></tr>
+<tr><td>中间人集群A</td><td><code>D5YqVMoSxnqeZAKAUUE1Dm3bmjtdxQ5DCF356ozqN9cM</code></td></tr>
+<tr><td>中间人集群B</td><td><code>FkaLnX17cXZGyeu3kZGdHCNdFMJJzBrPPYVvd18B3MZp</code></td></tr>
+<tr><td>中间人C</td><td><code>8Dz5HLLQKzXtwm8SxgcYzJqMzotinWgQFTiytjW35nwd</code></td></tr>
+<tr><td>中间人D</td><td><code>6gxqegc6C9c2TYbNn8fjsVXvcctjdLahUtV45KrMEnpn</code></td></tr>
+<tr><td>中间人E</td><td><code>997p6CNyaJquJd54ytDnqyr16e5yv4QUnVv2eWCZN62J</code></td></tr>
+<tr><td>中间人F</td><td><code>AaegV4PEhkrvuayWDr8Yv2DxPWqUwjFBHFoMF6z8nwiW</code></td></tr>
+<tr><td>中间人G</td><td><code>ByCFj1x3G9UszbTeFqekG1Zx91uG6GYgZKEn9e8ey13N</code></td></tr>
+<tr><td>中间人H</td><td><code>GJvewfRjqTUPtx6WsBSUnaFbdgXwgXnWfpDyLm65T4YA</code></td></tr>
+<tr><td>中间人I</td><td><code>Hrvy5r62HFT2BdFEF95jW61crTcortQztGxD5zx3NrQw</code></td></tr>
+<tr><td><strong>跨链桥接Hub</strong></td><td><code>2snHHreXbpJ7UwZxPe37gnUNf7Wx7wv6UKDSR2JckKuS</code></td></tr>
+</tbody></table>
+<h3>Phase 1 — 资产聚合与兑换（Hour 0）</h3>
+<p>5,603 SOL通过DEX聚合器转换为USDC，统一为单一稳定币后再进行跨链转移。攻击者未尝试通过任何Solana原生交易所直接清算。</p>
+<h3>Phase 2 — 结构化拆分（Peel Chain模式）</h3>
+<p>$893,700 USDC被拆分为多笔近似金额的转账，使用经典的structuring/peel-chain技术：</p>
+<table><thead><tr><th>金额</th><th>笔数</th><th>中间人地址</th></tr></thead><tbody>
+<tr><td>$93,690</td><td>×7</td><td>集群A <code>D5YqVMoS...</code></td></tr>
+<tr><td>$100,000</td><td>×5</td><td>集群B <code>FkaLnX17...</code></td></tr>
+<tr><td>$319,996</td><td>×1</td><td><code>8Dz5HLLQ...</code></td></tr>
+<tr><td>$255,261</td><td>×1</td><td><code>6gxqegc6...</code></td></tr>
+<tr><td>$191,797</td><td>×1</td><td><code>997p6CNy...</code></td></tr>
+<tr><td>$191,809</td><td>×1</td><td><code>AaegV4PE...</code></td></tr>
+<tr><td>$191,652</td><td>×1</td><td><code>ByCFj1x3...</code></td></tr>
+<tr><td>$193,700</td><td>×1</td><td><code>GJvewfRj...</code></td></tr>
+<tr><td>$127,815</td><td>×1</td><td><code>Hrvy5r62...</code></td></tr>
+</tbody></table>
+<p>每个中间人地址短暂持有后转发。此模式是公认的反洗钱类型学——目的是制造噪声，增加从单一交易重建资金流的难度。</p>
+<h3>Phase 3 — 汇聚于桥接准备Hub</h3>
+<p>所有9个中间人集群将USDC汇聚至单一地址<code>2snHHreX...</code>。此&quot;汇聚&quot;模式表明：拆分并非永久性分散，而是为了创造法证噪声的层化操作。层化完成后，资金重新汇聚准备跨链退出。从攻击到汇聚的总时间以小时计，非以天计。</p>
+<h3>Phase 4 — 跨链桥接：Solana → Ethereum</h3>
+<p>从桥接准备Hub，全部余额从Solana桥接至Ethereum。具体桥接协议尚未通过链上直接验证确认（基于PeckShield追踪报告，属可信但未独立验证线索）。多方独立安全研究员确认：<strong>资金在离开Solana后不久即到达Ethereum</strong>。</p>
+<h3>Phase 5 — 最终目的地：Tornado Cash</h3>
+<p>Ethereum端攻击者迅速行动：</p>
+<table><thead><tr><th>金额</th><th>目的地</th><th>说明</th></tr></thead><tbody>
+<tr><td><strong>810 ETH (~$1.26M)</strong></td><td>Tornado Cash</td><td>主要混合操作，占被盗总额~94%</td></tr>
+<tr><td><strong>7 ETH</strong></td><td>FixedFloat</td><td>非托管交换服务</td></tr>
+</tbody></table>
+<p>一旦资金以足够量进入Tornado Cash，交易级追踪即终止。无资金被报告冻结或被任何中心化交易所标记。</p>
+<h3>完整资金流图</h3>
+<pre><code>
+[5个废弃AMM V3池 on Solana]
+         ↓ 伪造LP mint — 2026年6月10日
+         
+[攻击者钱包: 4WnPebowR4HHfumvNPaDjG6Pa5Hi1jxLm6xmmBq33QVk]
+         |
+         ├─ SOL 5,603 → DEX Swap Hub → 转换为USDC
+         |
+         ├─ USDC → 结构化/Peel Chain (9个中间人地址)
+         |   $93,690×7 | $100,000×5 | $319K | $255K | $191K×3 | $127K
+         |
+         └─ 全部USDC → 桥接Hub (2snHHreXbpJ7UwZxPe37gnUNf7Wx7wv6UKDSR2JckKuS)
+                              |
+                     跨链桥接 (Solana → Ethereum)
+                              |
+                   ┌──────────┴──────────┐
+              810 ETH                  7 ETH
+         Tornado Cash              FixedFloat
+         [追踪终止]              [交换/转换]
+</code></pre>
+<hr>
+<h2>Attribution Anchor：KuCoin</h2>
+<p><strong>本案最关键的归因线索</strong>：攻击者钱包的初始资金来自KuCoin。</p>
+<p>在攻击发生前，攻击者从KuCoin账户接收运营资金（可能用于gas和测试交易）。KuCoin作为强制KYC注册的中心化交易所，持有该账户的身份记录。正式法律请求（法院命令、MLAT或相关司法管辖区的自愿合作请求）可向KuCoin获取攻击者的真实身份。</p>
+<p><strong>这是整个案件中唯一可行的归因锚点。</strong></p>
+<p>攻击者执行了专业化的清洗序列（结构化→跨链→混合），但犯了一个老练攻击者通常避免的错误：<strong>通过KYC交易所为运营钱包提供资金</strong>。</p>
+<hr>
+<h2>Tornado Cash背景数据（2026年现状）</h2>
+<table><thead><tr><th>指标</th><th>数据</th></tr></thead><tbody>
+<tr><td>2025年3月状态</td><td>美国财政部从制裁名单移除</td></tr>
+<tr><td>2026年市场份额</td><td>占加密混合器活动&gt;20%</td></tr>
+<tr><td>Ethereum地位</td><td>最大混合器</td></tr>
+<tr><td>周流入量</td><td>$10M - $80M</td></tr>
+<tr><td>2026年累计流入</td><td>&gt;$700M</td></tr>
+<tr><td>市场份额恢复</td><td>从制裁后16%恢复至&gt;40%（2025Q4）</td></tr>
+</tbody></table>
+<hr>
+<h2>系统性教训</h2>
+<h3>1. Deprecated ≠ Disabled</h3>
+<p>从UI移除的合约不等于已停用的合约。在无需许可的区块链上，如果程序已部署且可调用，任何人都可以调用——无论UI是否仍暴露它。</p>
+<h3>2. 遗留代码中的真实资产</h3>
+<p>更深层的失败不仅是旧AMM V3存在于链上，而是<strong>真实资产仍留在其中</strong>。当Raydium在2021年迁移到AMM V4和CLMM时，应从弃用池进行完整的资产迁移。5年的休眠加上真实流动性，精确创造了攻击者利用的条件。</p>
+<h3>3. 清洗模式可预测但有效</h3>
+<p>攻击者遵循安全研究员广泛记录的模式：结构化→跨链桥→混合器。可预测性是双刃剑——使追踪对调查人员更容易，但也证明混合器和桥接仍是DeFi攻击者的首选清洗基础设施。</p>
+<h3>4. Raydium的应对模式</h3>
+<p>Raydium承诺从项目国库全额补偿受影响LP。这与2022年12月$4.4M私钥泄露事件的处理模式一致（通过治理批准的补偿使用回购费和团队 vesting token）。</p>
+<hr>
+<h2>回收前景</h2>
+<p>坦率判断：$1.34M不太可能全额回收。</p>
+<ul>
+<li>810 ETH进入Tornado Cash——实际不可追踪</li>
+<li>FixedFloat提供有限的追索可能</li>
+<li>Ethereum端桥接目的地地址在发布时未获独立链上确认</li>
+</ul>
+<p>调查人员实际拥有的：</p>
+<ul>
+<li>Solana端完整资金流逐跳重建</li>
+<li><strong>KuCoin作为KYC关联资金来源——最强归因线索</strong></li>
+<li>攻击者主Solana地址完整映射</li>
+<li>结构化模式记录——构成蓄意层化的链上证据</li>
+</ul>
+<hr>
+<h2>References</h2>
+<ol>
+<li><a href="https://community.chainbounty.io/posts/019ec8ef-7235-711a-adfb-b196ac5dd2be">ChainBounty - A forensic breakdown of the June 2026 Raydium AMM V3 exploit</a> — 2026-06-15，完整法证分析</li>
+<li><a href="https://www.coindesk.cc/raydium-reports-1-34m-exploit-on-legacy-amm-v3-program-60699.html">CoinDesk - Raydium reports $1.34M exploit</a></li>
+<li><a href="https://decrypt.co/370700/solana-exchange-raydium-exploit-defi-attacks-grow">Decrypt - Solana Exchange Raydium Hit With $1.34 Million Exploit</a></li>
+<li><a href="https://thedefiant.io/">The Defiant - Raydium Confirms $1.34M Drain on Deprecated AMM V3</a></li>
+<li><a href="https://twitter.com/PeckShieldAlert">PeckShieldAlert - Twitter</a></li>
+<li><a href="https://primary-cdn.web3isgoinggreat.com/entryImages/logos/resized/raydium_300.webp">Web3 is Going Great - Raydium timeline entry</a></li>
+<li><a href="https://cryptotimes.io/">CryptoTimes - SlowMist Details Root Cause</a> — SlowMist独立技术分析</li>
+</ol>
+<hr>
+<p><em>Investigator: Onchain Shadow</em></p>
+<p><em>OPSEC Statement: 本报告所有信息来自公开来源，包括链上数据分析和安全研究机构的公开报告。所有地址归因基于已确认的链上资金流。Ethereum端桥接目的地在发布时未获独立链上确认，基于安全研究员发现报告。本报告仅供信息和调查目的使用。</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

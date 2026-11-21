@@ -1,0 +1,399 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WUSD.fi GLOVE Sybil Farming Attack - Onchain Investigation Report</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>WUSD.fi GLOVE Sybil Farming Attack - Onchain Investigation Report</h1>
+<p><strong>Report Date</strong>: May 28, 2026</p>
+<p><strong>Event Type</strong>: Sybil Farming Attack</p>
+<p><strong>Loss Amount</strong>: ~$207,000 USD</p>
+<p><strong>Attack Time</strong>: May 25, 2026 06:07 UTC</p>
+<p><strong>Affected Chain</strong>: Ethereum Mainnet</p>
+<p><strong>Starting Block</strong>: 25,170,426</p>
+<hr>
+<h2>I. Executive Summary</h2>
+<p>On May 25, 2026, the WUSD.fi protocol suffered a meticulously planned Sybil farming attack. The attacker exploited a design flaw in the protocol&#x27;s reward mechanism, using EIP-7702 technology to batch-create wallet addresses for farming GLOVE token rewards, ultimately stealing approximately $207,000 from Uniswap V3 liquidity pools.</p>
+<p><strong>Key Findings</strong>:</p>
+<ul>
+<li>This is the <strong>first large-scale attack using EIP-7702</strong>, marking the maturation of a new attack technique</li>
+<li>The core vulnerability lies in the lack of Sybil resistance mechanism in the <code>WUSD._englove()</code> function</li>
+<li>The attacker converted funds to 98 ETH and transferred them to the Railgun privacy protocol to increase tracing difficulty</li>
+<li>As of the report date, the WUSD.fi team has not issued any official statement</li>
+</ul>
+<hr>
+<h2>II. Event Overview</h2>
+<h3>2.1 Project Background</h3>
+<table><thead><tr><th>Project Information</th><th>Details</th></tr></thead><tbody>
+<tr><td>Project Name</td><td>WUSD.fi / GLOVE</td></tr>
+<tr><td>Token Type</td><td>ERC-20 (WUSD, GLOVE)</td></tr>
+<tr><td>Deployment Network</td><td>Ethereum Mainnet</td></tr>
+<tr><td>Protocol Type</td><td>Stablecoin Wrapper Protocol + Incentive Reward System</td></tr>
+<tr><td>GLOVE Utility</td><td>Protocol incentive token, distributed via wrap fee buybacks</td></tr>
+<tr><td>Core Mechanism</td><td>WUSD._englove() + Glove.mintCreditless()</td></tr>
+</tbody></table>
+<p><strong>GLOVE Token Economics</strong>:</p>
+<ul>
+<li>WUSD protocol charges 1% fee on each wrap operation</li>
+<li>Fee revenue is used to purchase GLOVE tokens on the open market</li>
+<li>GLOVE is distributed as rewards to protocol participants</li>
+<li>GLOVE has a &quot;utility credit&quot; system where users must accumulate internal credits to sell GLOVE holdings</li>
+</ul>
+<h3>2.2 Attacker Profile</h3>
+<table><thead><tr><th>Attribute</th><th>Details</th></tr></thead><tbody>
+<tr><td>Main EOA Address</td><td><code>0x88329A09428778F62BC0C8BAac0997864E5a57f8</code></td></tr>
+<tr><td>GLO-USDC Pool Extraction Address</td><td><code>0xB89F65D6c7d33A35Da7C01934e310a6f40E18A1f</code></td></tr>
+<tr><td>GLO-USDT Pool Extraction Address</td><td><code>0xa2Bd1A142ff49131B8CC70A332bdA0125018c324</code></td></tr>
+<tr><td>Operation Mode</td><td>Automated batch operations, EIP-7702 contract-driven</td></tr>
+<tr><td>Current Fund Status</td><td>Converted to 98 ETH, deposited in Railgun</td></tr>
+</tbody></table>
+<hr>
+<h2>III. Vulnerability Analysis</h2>
+<h3>3.1 Vulnerability Mechanism: WUSD._englove() Design Flaw</h3>
+<p><strong>Vulnerable Code Logic</strong>:</p>
+<pre><code>
+Condition 1: Wallet is a fresh wallet (new wallet)
+Condition 2: wrap ≥ 100 WUSD
+Condition 3: Holdings &lt; 2 GLOVE
+→ Can call Glove.mintCreditless() to receive 2 GLOVE
+</code></pre>
+<p><strong>Triple Absence</strong>:</p>
+<table><thead><tr><th>Protection Measure</th><th>Status</th></tr></thead><tbody>
+<tr><td>Identity Check</td><td>❌ Missing</td></tr>
+<tr><td>Rate Limit</td><td>❌ Missing</td></tr>
+<tr><td>Sybil Detection</td><td>❌ Missing</td></tr>
+</tbody></table>
+<p><strong>Attack Viability</strong>:</p>
+<ul>
+<li>Any new wallet address meeting the conditions can claim 2 GLOVE tokens</li>
+<li>Attackers can farm rewards infinitely by batch-creating addresses</li>
+<li>The contract code logic is completely correct, but the economic incentive design has fundamental flaws</li>
+</ul>
+<h3>3.2 Deep Analysis of EIP-7702 Attack Mechanism</h3>
+<p><strong>What is EIP-7702</strong>:</p>
+<p>EIP-7702 is a new feature introduced in the Ethereum Pectra upgrade, allowing Externally Owned Accounts (EOAs) to <strong>temporarily delegate execution rights to smart contracts</strong>, enabling regular wallets to operate as contracts.</p>
+<p><strong>Key Role in the Attack</strong>:</p>
+<pre><code>
+Traditional Method: Each new wallet address creation requires:
+                   1. Generate private key
+                   2. Deploy wallet contract (or use EOA)
+                   3. Fund transfer
+                   4. Contract call
+                   → High cost and low efficiency per operation
+
+EIP-7702 Method:
+                   1. Deploy single helper contract
+                   2. Batch-delegate multiple EOA addresses via EIP-7702
+                   3. Automated execution of all operations within the contract
+                   → Significantly reduces batch operation costs, enabling scalable attacks
+</code></pre>
+<p><strong>Technical Breakthrough</strong>:</p>
+<ul>
+<li>The attacker only needed to deploy one EIP-7702 helper contract</li>
+<li>This contract could delegate unlimited EOA addresses to execute smart contract logic</li>
+<li>Each delegated address appeared as a &quot;fresh wallet&quot; to the protocol</li>
+<li>Achieved <strong>single contract, multiple addresses, large-scale</strong> Sybil farming attack</li>
+</ul>
+<p><strong>EIP-7702 Security Warning</strong>:</p>
+<p>This is another case of EIP-7702 being used for malicious purposes since the Pectra upgrade in May 2025. Phishing attacks had previously exploited this technology, resulting in $1.54M in losses.</p>
+<hr>
+<h2>IV. Attack Path Reconstruction</h2>
+<h3>4.1 Complete Attack Flowchart</h3>
+<pre><code>
+┌─────────────────────────────────────────────────────────────────────┐
+│                         MORPHO USDT FLASH LOAN                       │
+│                           ($100,000+ USDT)                          │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Deploy EIP-7702 Helper Contract                   │
+│               Contract address temporarily gains                      │
+│               smart contract execution capability                    │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Batch Create Fresh Wallet Cluster               │
+│                    (Hundreds to thousands of new addresses)          │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+        ┌──────────┐    ┌──────────┐     ┌──────────┐
+        │Wallet #1 │    │Wallet #2 │     │Wallet #N │
+        │ wrap 100 │    │ wrap 100 │     │ wrap 100 │
+        │   WUSD   │    │   WUSD   │     │   WUSD   │
+        └────┬─────┘    └────┬─────┘     └────┬─────┘
+             │               │               │
+             ▼               ▼               ▼
+        ┌─────────────────────────────────────────┐
+        │       Call Glove.mintCreditless()        │
+        │         Each address claims 2 GLOVE      │
+        └─────────────────────────────────────────┘
+                               │
+                               ▼
+        ┌─────────────────────────────────────────┐
+        │          Batch Dump GLOVE to             │
+        │          Uniswap V3 Liquidity Pools      │
+        │  (GLO-USDC Pool + GLO-USDT Pool)         │
+        └─────────────────────────────────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              ▼                ▼                ▼
+        ┌──────────┐    ┌──────────┐     ┌──────────┐
+        │-11,702   │    │ -8,079   │     │  Profit  │
+        │  USDC    │    │  USDT    │     │ Aggregation
+        └──────────┘    └──────────┘     └────┬─────┘
+                                               │
+                                               ▼
+                                      ┌─────────────────┐
+                                      │   Repay Morpho  │
+                                      │   Flash Loan    │
+                                      └─────────────────┘
+                                               │
+                                               ▼
+                                      ┌─────────────────┐
+                                      │   Convert to ETH│
+                                      │   (~98 ETH)     │
+                                      └─────────────────┘
+                                               │
+                                               ▼
+                                      ┌─────────────────┐
+                                      │    Railgun      │
+                                      │  (Privacy)      │
+                                      └─────────────────┘
+</code></pre>
+<h3>4.2 Detailed Timeline</h3>
+<table><thead><tr><th>Time (UTC)</th><th>Block Height</th><th>Event Description</th></tr></thead><tbody>
+<tr><td>06:07:59</td><td>25,170,426</td><td>Attacker initiates first Morpho USDT flash loan</td></tr>
+<tr><td>06:08-06:15</td><td>~25,170,426-</td><td>EIP-7702 contract deployment, batch wallet creation</td></tr>
+<tr><td>06:08-06:15</td><td>~25,170,426-</td><td>Loop wrap/unwrap operations, mass mintCreditless calls</td></tr>
+<tr><td>06:08-06:15</td><td>~25,170,426-</td><td>GLOVE tokens batch minted and sold</td></tr>
+<tr><td>06:08-06:15</td><td>~25,170,426-</td><td>GLO-USDC pool loses 11,702 USDC</td></tr>
+<tr><td>06:08-06:15</td><td>~25,170,426-</td><td>GLO-USDT pool loses 8,079 USDT</td></tr>
+<tr><td>06:15</td><td>~</td><td>Repay Morpho flash loan principal + interest</td></tr>
+<tr><td>06:15</td><td>~</td><td>Profit aggregation to attacker main address</td></tr>
+<tr><td>06:15</td><td>~</td><td>Converted to ~98 ETH</td></tr>
+<tr><td>06:54:52</td><td>~</td><td>ExVul security researcher first public warning</td></tr>
+<tr><td>08:38:05</td><td>~</td><td>PeckShield confirms attack, publishes complete analysis</td></tr>
+<tr><td>08:38+</td><td>~</td><td>98 ETH transferred to Railgun privacy protocol</td></tr>
+</tbody></table>
+<h3>4.3 Fund Flow Tracking</h3>
+<p><strong>Initial Fund Source</strong>:</p>
+<table><thead><tr><th>Source</th><th>Amount</th><th>Nature</th></tr></thead><tbody>
+<tr><td>Morpho USDT Flash Loan</td><td>$100,000+</td><td>Flash loan (repaid within single transaction)</td></tr>
+<tr><td>Attacker Own Funds</td><td>Small amount of ETH</td><td>Initial Gas fees</td></tr>
+</tbody></table>
+<p><strong>Lost Asset Details</strong>:</p>
+<table><thead><tr><th>Asset</th><th>Amount</th><th>Source Pool</th><th>Extraction Address</th></tr></thead><tbody>
+<tr><td>USDC</td><td>11,702.083968</td><td>Uniswap V3 GLO-USDC</td><td><code>0xB89F65D6c7d33A35Da7C01934e310a6f40E18A1f</code></td></tr>
+<tr><td>USDT</td><td>8,079.161526</td><td>Uniswap V3 GLO-USDT</td><td><code>0xa2Bd1A142ff49131B8CC70A332bdA0125018c324</code></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>~19,781.24</strong></td><td>Stablecoin Value</td><td>-</td></tr>
+</tbody></table>
+<p><strong>Fund Aggregation and Mixing</strong>:</p>
+<pre><code>
+GLO-USDC Pool Extraction Address ─┐
+                                   ├──▶ Attacker Main EOA ──▶ Convert to 98 ETH ──▶ Railgun
+GLO-USDT Pool Extraction Address ─┘
+</code></pre>
+<p><strong>Railgun Transfer Records</strong>:</p>
+<ul>
+<li>Amount: ~98 ETH (worth approximately $207,000)</li>
+<li>Time: Shortly after PeckShield confirmation</li>
+<li>Purpose: Anonymize transactions via zero-knowledge proofs, sever chain tracking</li>
+</ul>
+<hr>
+<h2>V. Sybil Wallet Network Analysis</h2>
+<h3>5.1 Attack Scale Estimation</h3>
+<p>Based on attack revenue and single reward (2 GLOVE) estimation:</p>
+<pre><code>
+Total Loss ≈ $207,000
+Single Wrap Fee ≈ 1% × 100 WUSD = 1 WUSD ≈ $1
+Per Cycle Cost ≈ gas fees + wrap fee
+Per Cycle Revenue ≈ 2 GLOVE × GLOVE price
+
+Conservative estimate: Hundreds to thousands of Fresh Wallet addresses involved
+</code></pre>
+<h3>5.2 Wallet Cluster Characteristics</h3>
+<table><thead><tr><th>Characteristic</th><th>Description</th></tr></thead><tbody>
+<tr><td>Address Type</td><td>EIP-7702 Delegated EOA</td></tr>
+<tr><td>Creation Time</td><td>Within attack window (~06:07-06:15 UTC)</td></tr>
+<tr><td>Lifecycle</td><td>Single-use (abandoned after attack)</td></tr>
+<tr><td>GLOVE Holdings</td><td>All sold after attack</td></tr>
+<tr><td>Correlation</td><td>Shared same EIP-7702 helper contract</td></tr>
+</tbody></table>
+<h3>5.3 EIP-7702 Contract Address</h3>
+<p>Based on public onchain analysis, the attacker&#x27;s deployed EIP-7702 helper contract:</p>
+<ul>
+<li>Function: Batch management of delegated EOA addresses</li>
+<li>Permissions: Temporarily obtained EOA execution rights</li>
+<li>Status: Possibly abandoned or destroyed after attack</li>
+</ul>
+<hr>
+<h2>VI. Flash Loan Path Analysis</h2>
+<h3>6.1 Morpho USDT Flash Loan Mechanism</h3>
+<p><strong>Morpho Protocol Features</strong>:</p>
+<ul>
+<li>Optimization lending market based on Aave V3</li>
+<li>Supports flash loans, no collateral required</li>
+<li>Atomic transaction guarantee</li>
+</ul>
+<p><strong>Flash Loan Workflow</strong>:</p>
+<pre><code>
+1. Attack contract borrows USDT from Morpho
+         ↓
+2. Execute attack operations within the same transaction
+   - wrap WUSD
+   - mintCreditless
+   - swap GLOVE for stablecoins
+         ↓
+3. Repay USDT principal + fees
+         ↓
+4. Transaction succeeds, profit goes to attacker
+   OR
+   Transaction fails/rolls back, Morpho funds untouched
+</code></pre>
+<h3>6.2 Complete Attack-Repayment Path</h3>
+<table><thead><tr><th>Step</th><th>Operation</th><th>Amount</th></tr></thead><tbody>
+<tr><td>1</td><td>Borrow Morpho USDT</td><td>+$100,000+</td></tr>
+<tr><td>2</td><td>wrap WUSD (loop N times)</td><td>-$N WUSD</td></tr>
+<tr><td>3</td><td>mintCreditless (loop N times)</td><td>+2N GLOVE</td></tr>
+<tr><td>4</td><td>swap GLOVE → USDC/USDT</td><td>Sell all GLOVE</td></tr>
+<tr><td>5</td><td>Extract liquidity from GLO pools</td><td>+$207,000</td></tr>
+<tr><td>6</td><td>Repay Morpho USDT + fee</td><td>-$100,000+</td></tr>
+<tr><td>7</td><td>Net profit aggregation</td><td>+$207,000-$100,000</td></tr>
+</tbody></table>
+<hr>
+<h2>VII. GLOVE Token Economic Impact</h2>
+<h3>7.1 Immediate Market Impact</h3>
+<table><thead><tr><th>Impact Dimension</th><th>Description</th></tr></thead><tbody>
+<tr><td>Price Impact</td><td>GLOVE token price pressured by massive selling</td></tr>
+<tr><td>Liquidity Impact</td><td>GLO-USDC and GLO-USDT pool liquidity significantly decreased</td></tr>
+<tr><td>LP Loss</td><td>Liquidity provider positions damaged by impermanent loss + pool draining</td></tr>
+<tr><td>Protocol Trust</td><td>Reward mechanism vulnerability exposed, protocol credibility damaged</td></tr>
+</tbody></table>
+<h3>7.2 Long-term Token Economics Impact</h3>
+<table><thead><tr><th>Item</th><th>Assessment</th></tr></thead><tbody>
+<tr><td>GLOVE Token Price</td><td>Faces selling pressure short-term, depends on protocol fix long-term</td></tr>
+<tr><td>Protocol TVL</td><td>Liquidity providers may withdraw funds</td></tr>
+<tr><td>Incentive Mechanism</td><td>Requires redesign with Sybil resistance</td></tr>
+<tr><td>Community Trust</td><td>WUSD.fi non-responsive as of report date affects trust recovery</td></tr>
+</tbody></table>
+<h3>7.3 Industry Trend Correlation</h3>
+<p>2026 DeFi Security Landscape:</p>
+<ul>
+<li>As of report date, DeFi exploit cumulative losses: ~$770M+</li>
+<li>May became a high-incident period for liquidity layer attacks</li>
+<li>Incentive paths and internal accounting becoming new attack vectors</li>
+<li>Traditional code audits cannot cover economic incentive design flaws</li>
+</ul>
+<hr>
+<h2>VIII. Security Warnings and Recommendations</h2>
+<h3>8.1 Vulnerability Root Cause Summary</h3>
+<table><thead><tr><th>Dimension</th><th>Issue</th></tr></thead><tbody>
+<tr><td>Code Level</td><td>Contract logic correct, no typical vulnerabilities</td></tr>
+<tr><td>Design Level</td><td>WUSD._englove() lacks Sybil resistance</td></tr>
+<tr><td>Economic Level</td><td>mintCreditless has no frequency limit/identity verification</td></tr>
+<tr><td>Audit Level</td><td>Routine audits don&#x27;t test economic incentive paths</td></tr>
+</tbody></table>
+<h3>8.2 Protocol Security Recommendations</h3>
+<p><strong>Immediate Actions</strong>:</p>
+<ol>
+<li>Pause Glove.mintCreditless() functionality</li>
+<li>Implement wallet history correlation detection</li>
+<li>Add per-address claim frequency limits</li>
+<li>Introduce onchain identity verification (e.g., WorldID)</li>
+</ol>
+<p><strong>Long-term Improvements</strong>:</p>
+<ol>
+<li>Economic incentive design requires special audits</li>
+<li>Introduce TWAP price oracle to prevent flash loan manipulation</li>
+<li>Establish real-time anomaly monitoring and alerting system</li>
+<li>Consider decentralized emergency pause mechanism</li>
+</ol>
+<h3>8.3 User Risk Warnings</h3>
+<table><thead><tr><th>Risk Type</th><th>Description</th></tr></thead><tbody>
+<tr><td>LP Risk</td><td>Liquidity providers in attacked pools lost assets</td></tr>
+<tr><td>Exposure Risk</td><td>Users holding GLOVE tokens face selling pressure</td></tr>
+<tr><td>Trust Risk</td><td>Protocol non-response may indicate Rug Pull</td></tr>
+<tr><td>Recovery Risk</td><td>Funds have entered Railgun, recovery extremely unlikely</td></tr>
+</tbody></table>
+<hr>
+<h2>IX. Evidence Sources</h2>
+<h3>9.1 Onchain Data Sources</h3>
+<table><thead><tr><th>Source</th><th>Link/Notes</th></tr></thead><tbody>
+<tr><td>Etherscan</td><td>API Key: 2WASDAKWI6H5S1HJNS4V4RYZNBHW2QUCFA</td></tr>
+<tr><td>PeckShield Alert</td><td>https://twitter.com/PeckShieldAlert</td></tr>
+<tr><td>ExVul Research</td><td>https://twitter.com/ExVul_</td></tr>
+<tr><td>Lookonchain</td><td>https://m.lookonchain.com/feeds/57616</td></tr>
+</tbody></table>
+<h3>9.2 Security Company Confirmations</h3>
+<table><thead><tr><th>Company</th><th>Status</th><th>Source</th></tr></thead><tbody>
+<tr><td>ExVul</td><td>First public warning</td><td>X/Twitter</td></tr>
+<tr><td>PeckShield</td><td>Confirmed and tracking</td><td>X/Twitter Alert</td></tr>
+<tr><td>SlowMist</td><td>Added to hack database</td><td>Hack Archives</td></tr>
+</tbody></table>
+<h3>9.3 News Sources</h3>
+<table><thead><tr><th>Source</th><th>Link</th></tr></thead><tbody>
+<tr><td>Live Bitcoin News</td><td>https://www.livebitcoinnews.com/wusd-fi-sybil-farming-attack-drains-200k-from-glove-pools/</td></tr>
+<tr><td>CoinAlert News</td><td>https://coinalertnews.com/news/2026/05/27/defi-exploits-glove-stakedao</td></tr>
+<tr><td>CoinFi</td><td>https://www.coinfi.com/news/1812793/wusdfi-sybil-farming-attack-drains-200k-from-glove-pools</td></tr>
+<tr><td>Crypto Adventure</td><td>https://coinstats.app/news/21f76ad1f0bcf1a49e26ef5b33f5a896986db9aaaef63be7d0f8ca08f952adc1_WUSDGLOVE-Exploit-Drains-207K-Before-Funds-Move-Into-Railgun</td></tr>
+<tr><td>OurCryptoTalk</td><td>https://ourcryptotalk.com/news/glove-exploit-wusd-fi-200k-sybil-attack</td></tr>
+</tbody></table>
+<hr>
+<h2>X. Appendices</h2>
+<h3>Appendix A: Key Address Summary</h3>
+<table><thead><tr><th>Address Purpose</th><th>Address</th></tr></thead><tbody>
+<tr><td>Attacker Main EOA</td><td><code>0x88329A09428778F62BC0C8BAac0997864E5a57f8</code></td></tr>
+<tr><td>GLO-USDC Pool Extraction</td><td><code>0xB89F65D6c7d33A35Da7C01934e310a6f40E18A1f</code></td></tr>
+<tr><td>GLO-USDT Pool Extraction</td><td><code>0xa2Bd1A142ff49131B8CC70A332bdA0125018c324</code></td></tr>
+<tr><td>Target Contract</td><td><code>0x068e3563b1c19590f822c0e13445c4fa1b9eefa5</code></td></tr>
+</tbody></table>
+<h3>Appendix B: Attack Statistics</h3>
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+<tr><td>Attack Duration</td><td>~8 minutes</td></tr>
+<tr><td>Attack Block Range</td><td>25,170,426+</td></tr>
+<tr><td>GLO-USDC Pool Loss</td><td>11,702.083968 USDC</td></tr>
+<tr><td>GLO-USDT Pool Loss</td><td>8,079.161526 USDT</td></tr>
+<tr><td>Total Stablecoin Loss</td><td>~19,781.24</td></tr>
+<tr><td>ETH Equivalent</td><td>~98 ETH</td></tr>
+<tr><td>Final Loss</td><td>~$207,000</td></tr>
+</tbody></table>
+<hr>
+<p><strong>Disclaimer</strong>: This report is based on publicly available on-chain data and third-party sources for informational purposes only. The analysis and recommendations in this report should not be construed as legal or investment advice.</p>
+<p><strong>Report Generation Date</strong>: May 28, 2026</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Echo Protocol eBTC Admin Key Attack Investigation Report</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Echo Protocol eBTC Admin Key Attack Investigation Report</h1>
+<p><strong>Date</strong>: May 27, 2026</p>
+<p><strong>Event</strong>: Echo Protocol eBTC Admin Key Attack</p>
+<p><strong>Attack Time</strong>: May 18, 2026 ~17:55 ET</p>
+<p><strong>Investigator</strong>: Onchain Shadow</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>BTCFi protocol Echo Protocol&#x27;s eBTC deployment on Monad suffered an admin key attack. The attacker obtained DEFAULT_ADMIN_ROLE, self-granted MINTER_ROLE, minted 1,000 units of unbacked eBTC (face value $76.7M), and cashed out approximately $816K in real assets through Curvance lending protocol before laundering through Tornado Cash. Due to insufficient liquidity in Monad DeFi ecosystem, 955 eBTC remained illiquid and were ultimately destroyed by the Echo team.</p>
+<p><strong>Key Lesson</strong>: A $254M+ TVL protocol with management permissions tied to a single EOA private key—one key is the entire line of defense.</p>
+<hr>
+<h2>Key Metrics</h2>
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+<tr><td>Fake Token Face Value</td><td>~$76.7M (1,000 eBTC)</td></tr>
+<tr><td>Actual Cash-Out Amount</td><td>~$816K (384 ETH → Tornado Cash)</td></tr>
+<tr><td>Face Value to Actual Ratio</td><td>94:1 (due to liquidity insufficiency)</td></tr>
+<tr><td>Destroyed Fake Tokens</td><td>955 eBTC</td></tr>
+<tr><td>Echo Aptos TVL</td><td>~$254M</td></tr>
+<tr><td>ECHO Token Decline</td><td>-11% (after news broke)</td></tr>
+</tbody></table>
+<hr>
+<h2>Attack Flow Breakdown</h2>
+<h3>Step 1: Obtain Admin Privileges</h3>
+<p>Attacker obtained control of eBTC contract&#x27;s DEFAULT_ADMIN_ROLE. This permission was tied to a <strong>single EOA address</strong> (regular wallet, single private key) with no multisig protection, no timelock, and no rate limiting.</p>
+<h3>Step 2: Self-Grant Minter Role</h3>
+<pre><code>
+grantRole(MINTER_ROLE, attacker_wallet)
+</code></pre>
+<p>Used admin privileges to grant themselves the minter role.</p>
+<h3>Step 3: Mint Fake eBTC</h3>
+<pre><code>
+mint(attacker_wallet, 1000e8)
+</code></pre>
+<p>1,000 eBTC凭空出现。Face value $76.7M, real BTC backing: 0.</p>
+<h3>Step 4: Cover Tracks</h3>
+<p>Attacker <strong>revoked their own admin privileges</strong>, making on-chain traces less obvious. This was premeditated—the attacker knew investigators would first scan role authorization records.</p>
+<h3>Step 5: Cash Out via Curvance</h3>
+<ul>
+<li>Deposited 45 fake eBTC (face value $3.45M) into Curvance as collateral</li>
+<li>Curvance had <strong>zero verification</strong> to distinguish real from fake eBTC—from the contract&#x27;s perspective, eBTC is just eBTC</li>
+<li>Borrowed 11.29 WBTC (~$867,700)</li>
+</ul>
+<h3>Step 6: Cross-Chain Laundering</h3>
+<ul>
+<li>Bridged WBTC to Ethereum mainnet</li>
+<li>Swapped to ETH</li>
+<li>Approximately 384 ETH ($821,700) deposited to Tornado Cash</li>
+</ul>
+<h3>Step 7: Remaining Fake Tokens Stranded</h3>
+<p>955 eBTC remained in attacker&#x27;s Monad wallet, unable to cash out further due to liquidity exhaustion. Echo team subsequently destroyed these tokens.</p>
+<hr>
+<h2>Dual Failure Analysis</h2>
+<h3>Failure 1: Echo Protocol — Single Private Key Managing $254M+ Protocol</h3>
+<ul>
+<li>DEFAULT_ADMIN_ROLE tied to an EOA</li>
+<li>No multisig, no timelock, no minting cap, no rate limit</li>
+<li>Entire Monad deployment security equivalent to single private key security</li>
+</ul>
+<h3>Failure 2: Curvance — No Collateral Source Verification</h3>
+<ul>
+<li>Accepted newly minted eBTC as collateral without verifying BTC backing</li>
+<li>Lending protocols should implement post-mint cooldown periods or whitelist mechanisms</li>
+<li>Isolated market design limited contagion but did not prevent single-asset exploitation</li>
+</ul>
+<hr>
+<h2>2026 DeFi Security Trends</h2>
+<table><thead><tr><th>Trend</th><th>Percentage</th><th>Description</th></tr></thead><tbody>
+<tr><td>Admin key/private key theft</td><td>70%+</td><td>Primary attack vector in 2026</td></tr>
+<tr><td>LayerZero bridge exploits</td><td>18%</td><td>Cross-chain infrastructure risk</td></tr>
+<tr><td>Fake/deception tokens</td><td>14%</td><td>Like the fake eBTC in this case</td></tr>
+<tr><td>Smart contract vulnerabilities</td><td>&lt;10%</td><td>Traditional attack vectors declining</td></tr>
+</tbody></table>
+<h3>Major May 2026 Events</h3>
+<table><thead><tr><th>Date</th><th>Project</th><th>Loss</th><th>Cause</th></tr></thead><tbody>
+<tr><td>5/24</td><td>StablR</td><td>$2.8M</td><td>1-of-3 multisig key compromised</td></tr>
+<tr><td>5/22</td><td>Polymarket</td><td>$600K+</td><td>Exploitation</td></tr>
+<tr><td>5/22</td><td>Verus Bridge</td><td>$8.5M (returned)</td><td>Malicious nodes + GG20 exploit</td></tr>
+<tr><td>5/21</td><td>Map Protocol</td><td>96% crash</td><td>10 trillion tokens minted</td></tr>
+<tr><td>5/19</td><td><strong>Echo Protocol</strong></td><td><strong>$816K</strong></td><td><strong>Admin key compromised</strong></td></tr>
+<tr><td>5/15</td><td>THORChain</td><td>$10M</td><td>Malicious nodes</td></tr>
+<tr><td>April</td><td>Drift</td><td>$285M</td><td>CCTP exploit</td></tr>
+<tr><td>April</td><td>KelpDAO</td><td>$292M</td><td>Protocol attack</td></tr>
+</tbody></table>
+<hr>
+<h2>Defense Recommendations</h2>
+<h3>For Protocols</h3>
+<ol>
+<li><strong>Multisig Management</strong>: Minimum 2-of-3, recommended 3-of-5 + hardware wallets</li>
+<li><strong>Timelock</strong>: Ownership changes require 24-48 hour delay</li>
+<li><strong>Minting Cap</strong>: Single/daily minting limits</li>
+<li><strong>Rate Limiting</strong>: Large mints trigger alerts and delays</li>
+<li><strong>Role Separation</strong>: Admin/minter/pauser use different controllers</li>
+</ol>
+<h3>For Lending Protocols</h3>
+<ol>
+<li><strong>Collateral Source Verification</strong>: Newly minted tokens require cooldown before serving as collateral</li>
+<li><strong>Minting Monitoring</strong>: Real-time monitoring of abnormal token supply growth</li>
+<li><strong>Isolated Markets</strong>: Curvance&#x27;s isolated market design limited contagion—well done</li>
+</ol>
+<hr>
+<h2>Pending Deep Investigation Areas</h2>
+<ol>
+<li><strong>Admin Key Compromise Method</strong>: Phishing/insider/supply chain/malware?</li>
+<li><strong>Attacker On-Chain Footprint</strong>: Fund destinations after Tornado Cash deposit</li>
+<li><strong>Curvance Bad Debt Handling</strong>: How are bad debts from 45 fake eBTC handled?</li>
+<li><strong>Cross-Chain Bridge Security</strong>: WBTC bridging path from Monad to Ethereum</li>
+<li><strong>Echo Aptos Deployment Comparison</strong>: Is aBTC management permissions equally vulnerable?</li>
+</ol>
+<hr>
+<h2>Data Sources</h2>
+<ul>
+<li><a href="https://beincrypto.com/autopsy-of-the-echo-protocol-hack/">BeInCrypto - Echo Protocol Hack Autopsy</a></li>
+<li><a href="https://piglobalinvestments.com/bitcoin/echo-protocol-hack-on-monad/">PIGlobalInvestments - Echo Protocol Hack on Monad</a></li>
+<li><a href="https://cointelegraph.com/tags/hacks">Cointelegraph - Echo Protocol eBTC exploited</a></li>
+<li><a href="https://bingx.com/id/news/post/echo-token-slides-after-echo-protocol-admin-key-exploit-mints-m-in-ebtc">BingX - ECHO token slides</a></li>
+<li><a href="https://thearabianpost.com/echo-breach-exposes-bitcoin-defi-risks/">The Arabian Post - Echo breach exposes Bitcoin DeFi risks</a></li>
+<li>@dcfgod X post (initial exploit alert)</li>
+<li>@keoneHD (Monad co-founder) confirmation</li>
+</ul>
+<hr>
+<p>Investigator: Onchain Shadow</p>
+<p>Disclaimer: This report is based on publicly available on-chain data and media reports for security research purposes only.</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

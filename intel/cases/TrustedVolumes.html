@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustedVolumes $5.87M DeFi Exploit — 链上调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>TrustedVolumes $5.87M DeFi Exploit — 链上调查报告</h1>
+<p>&gt; 调查日期：2026-07-13</p>
+<p>&gt; 事件日期：2026-07-11/12（攻击仍在进行中）</p>
+<p>&gt; 调查状态：🔴 活跃攻击，资金持续流出</p>
+<p>&gt; 分类：DeFi流动性协议漏洞利用 / 连续攻击者复现</p>
+<hr>
+<h2>1. 事件概述</h2>
+<p>TrustedVolumes，一个为1inch等多个DeFi协议提供流动性服务的独立dApp，于2026年7月11-12日遭到攻击，损失约$5.87M。区块链安全公司Blockaid将此次攻击归因于同一攻击者——该攻击者此前在2025年3月成功攻击了1inch Fusion V1协议。</p>
+<p>这是2026年7月的<strong>第五起</strong>DeFi协议攻击事件，紧随Bonzo Lend（$9M）、BonkDAO（$20M）、Summer.fi（$6M）和其他事件之后。</p>
+<h2>2. 损失明细</h2>
+<table><thead><tr><th>资产类型</th><th>数量</th><th>估计价值</th></tr></thead><tbody>
+<tr><td>WETH</td><td>1,291.16</td><td>~$2.33M</td></tr>
+<tr><td>USDT</td><td>206,282</td><td>~$206K</td></tr>
+<tr><td>WBTC</td><td>16.939</td><td>~$1.09M</td></tr>
+<tr><td>USDC</td><td>1,268,771</td><td>~$1.27M</td></tr>
+<tr><td><strong>合计</strong></td><td></td><td><strong>~$5.87M</strong></td></tr>
+</tbody></table>
+<p>所有被盗资产均在Ethereum主网上转移。</p>
+<h2>3. 攻击者画像 — 连续威胁行为者</h2>
+<h3>3.1 与1inch Fusion V1的关联</h3>
+<p><strong>关键发现</strong>：Blockaid将此次TrustedVolumes攻击的同一攻击者追溯到2025年3月的1inch Fusion V1攻击。</p>
+<ul>
+<li><strong>前科</strong>：2025年3月攻击1inch Fusion V1，利用流动性基础设施漏洞</li>
+<li><strong>演进模式</strong>：攻击者已从最初的攻击手法中&quot;学习&quot;，专门针对DeFi流动性基础设施的系统性弱点</li>
+<li><strong>目标选择</strong>：从协议层转向流动性提供商层——TrustedVolumes作为为多个协议（包括1inch）提供流动性的独立dApp</li>
+</ul>
+<h3>3.2 攻击模式特征</h3>
+<ol>
+<li><strong>流动性基础设施聚焦</strong>：选择为多协议提供流动性的中间层作为目标</li>
+<li><strong>多资产同步提取</strong>：同时抽取WETH、USDT、WBTC、USDC四种资产</li>
+<li><strong>风险分散策略</strong>：稳定币（即时流动性）+ 包装资产（DEX集成深度）</li>
+<li><strong>持续攻击</strong>：报道指出攻击&quot;仍在进行中&quot;（ongoing）</li>
+</ol>
+<h2>4. 技术背景</h2>
+<h3>4.1 TrustedVolumes的角色</h3>
+<p>TrustedVolumes是一个<strong>独立流动性提供商</strong>，为包括1inch在内的多个DeFi协议提供流动性服务。关键区别：</p>
+<ul>
+<li>非1inch的组成部分，是独立的第三方dApp</li>
+<li>跨协议流动性提供意味着安全边界模糊</li>
+<li>攻击TrustedVolumes可以同时影响多个下游协议的用户</li>
+</ul>
+<h3>4.2 1inch声明</h3>
+<p>1inch发布声明确认：</p>
+<ul>
+<li>其核心系统、底层基础设施和用户资金<strong>未受影响</strong></li>
+<li>TrustedVolumes是<strong>独立dApp</strong>，非1inch专属</li>
+<li>1inch正在与安全合作伙伴密切监控情况</li>
+</ul>
+<h3>4.3 攻击向量分析（推断）</h3>
+<p>虽然具体攻击向量尚未完全公开，基于已知信息推断：</p>
+<ul>
+<li>攻击者可能利用了TrustedVolumes与1inch等协议的流动性交互逻辑中的漏洞</li>
+<li>多资产同步提取暗示攻击者对协议的流动性路由有深入理解</li>
+<li>连续攻击者模式表明这可能不是简单的智能合约漏洞，而是对流动性基础设施架构的系统性利用</li>
+</ul>
+<h2>5. 资金追踪</h2>
+<h3>5.1 已知状态</h3>
+<ul>
+<li>攻击在2026年7月11-12日发生</li>
+<li>截至报告撰写时，攻击&quot;仍在进行中&quot;</li>
+<li>区块链安全公司和链上分析师正在实时追踪资金流向</li>
+<li>具体攻击者钱包地址尚未在公开报道中披露（Blockaid可能已内部掌握）</li>
+</ul>
+<h3>5.2 待追踪</h3>
+<ul>
+<li>WETH和WBTC是否已通过DEX转换为ETH/BTC</li>
+<li>稳定币（USDT/USDC）是否已桥接至其他链</li>
+<li>是否使用了混币器（如Tornado Cash）</li>
+</ul>
+<h2>6. 系统性风险与行业影响</h2>
+<h3>6.1 &quot;流动性提供商&quot;作为新型攻击面</h3>
+<p>TrustedVolumes攻击延续了2026年一个令人不安的趋势：攻击者开始系统性地瞄准<strong>流动性中间层</strong>而非协议本身。</p>
+<table><thead><tr><th>攻击模式</th><th>案例</th><th>损失</th></tr></thead><tbody>
+<tr><td>协议直接攻击</td><td>Summer.fi Lazy Vault</td><td>$6M</td></tr>
+<tr><td>治理攻击</td><td>BonkDAO</td><td>$20M</td></tr>
+<tr><td>预言机操纵</td><td>Bonzo Lend</td><td>$9M</td></tr>
+<tr><td><strong>流动性提供商攻击</strong></td><td><strong>TrustedVolumes</strong></td><td><strong>$5.87M</strong></td></tr>
+</tbody></table>
+<p>流动性提供商攻击的特殊危险在于：</p>
+<ul>
+<li>一个目标被攻破，多个协议的用户同时受影响</li>
+<li>DeFi的互连性使安全边界模糊化</li>
+<li>传统审计无法覆盖跨协议的流动性路由风险</li>
+</ul>
+<h3>6.2 连续攻击者问题</h3>
+<p>TrustedVolumes攻击者自2025年3月首次攻击1inch Fusion以来，时隔16个月再次出手，表明：</p>
+<ol>
+<li><strong>DeFi缺乏有效的威慑机制</strong>——无逮捕、无冻结、无追诉</li>
+<li><strong>攻击者持续迭代</strong>——从协议层转向流动性层</li>
+<li><strong>安全协调不足</strong>——协议间缺乏针对已知威胁行为者的联合防御</li>
+</ol>
+<h2>7. 与已覆盖事件的关联</h2>
+<h3>7.1 2026年7月攻击浪潮</h3>
+<p>本月已确认的5起DeFi攻击：</p>
+<ol>
+<li>Summer.fi Lazy Summer Vaults — $6M（07-06）</li>
+<li>BonkDAO治理攻击 — $20M（07-06）</li>
+<li>Bonzo Lend预言机利用 — $9M（07-11）</li>
+<li><strong>TrustedVolumes流动性攻击 — $5.87M（07-11/12）</strong> ← 本调查</li>
+<li>（其他待确认事件）</li>
+</ol>
+<h3>7.2 与Bybit $1.4B被盗案的资金清洗窗口重叠</h3>
+<p>Ben Zhou此前表示&quot;本周和下周是资金在交易所/OTC/P2P清盘的关键期&quot;。TrustedVolumes攻击的时间与Bybit被盗资金清洗的关键窗口重叠，增加了大规模洗钱通道的拥堵和检测难度。</p>
+<h2>8. ZachXBT覆盖状态</h2>
+<p><strong>ZachXBT尚未覆盖此事件。</strong> 这是一个填补空白的机会，特别是从&quot;连续攻击者&quot;和&quot;流动性基础设施安全&quot;角度进行分析。</p>
+<h2>9. 数据来源</h2>
+<table><thead><tr><th>来源</th><th>链接</th><th>说明</th></tr></thead><tbody>
+<tr><td>Voxvine — DeFi Exploit Wave</td><td>https://voxvine.com/news/defi-exploit-wave-worsens-with-5-87m-at-trustedvolumes-hack-and-increased-security-concerns/</td><td>Blockaid归因分析、损失明细</td></tr>
+<tr><td>Blockaid（X/Twitter）</td><td>原始安全警报</td><td>攻击检测、1inch Fusion关联</td></tr>
+</tbody></table>
+<hr>
+<p><em>本报告由链上侦探自动生成，所有信息来自公开来源。标注数据来源链接。</em></p>
+<p><em>调查时间：2026-07-13 16:03 UTC+8</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

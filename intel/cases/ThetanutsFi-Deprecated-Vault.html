@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thetanuts Finance $2.1M Deprecated Vault Exploit 调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Thetanuts Finance $2.1M Deprecated Vault Exploit 调查报告</h1>
+<p><strong>调查日期</strong>: 2026-06-16</p>
+<p><strong>事件发生日期</strong>: 2026-06-15</p>
+<p><strong>来源</strong>: PeckShieldAlert, Blockaid, ExVul, Cryptopolitan, Crypto-Economy, CoinPost</p>
+<p><strong>严重程度</strong>: 🟠 中高 — 24小时内第二起deprecated contract攻击，&quot;僵尸合约&quot;模式确认</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>2026年6月15日，去中心化期权协议 Thetanuts Finance 的一个已弃用（deprecated）vault遭受闪电贷攻击，损失约 $2.1M。攻击者利用 index-token 铸造/赎回逻辑中的整数除法截断漏洞，在 totalSupply 被消耗至接近0时触发舍入错误，实现零成本无限铸造。</p>
+<p>约 $2M 的期权代币被白帽研究者回收，攻击者最终获利约 $139K（$105K USDC兑换为~60 ETH + $34K USDC期权代币）。</p>
+<p><strong>这是24小时内第二起针对已弃用 DeFi 合约的攻击</strong>——前一日（6/14）Aztec Connect 刚遭受 $2.19M &quot;僵尸合约&quot;攻击。两起事件共同确认了一个新兴系统性风险：攻击者正在系统性扫描区块链上已弃用但仍持有资产的智能合约。</p>
+<hr>
+<h2>Attack Vector Analysis</h2>
+<h3>漏洞根因</h3>
+<p>据安全研究者 ExVul 的分析，漏洞存在于 legacy vault 的赎回数学逻辑中：</p>
+<p><strong>核心公式</strong>: <code>depositAmount = backing * amount / totalSupply</code></p>
+<p>当 vault 的 <code>totalSupply</code> 被 claim 操作消耗至接近 0 时，整数除法截断使 <code>depositAmount</code> 计算结果为 0。攻击者可以零成本铸造新代币，再用这些代币提取 vault 中的真实资产。</p>
+<p><strong>技术细节</strong>:</p>
+<ol>
+<li>Solidity 的整数除法在结果为小数时向下截断（floor division）</li>
+<li>当 <code>totalSupply → 0</code> 时，<code>backing * amount / totalSupply</code> 的分母极小</li>
+<li>但在 claim 先将 supply 耗尽的场景下，后续的 mint 操作中 <code>amount</code> 参数的特定值可使整个表达式结果为 0</li>
+<li>攻击者利用闪电贷在同一交易内完成：推低supply → 零成本铸造 → 提取价值</li>
+</ol>
+<h3>攻击时间线</h3>
+<table><thead><tr><th>时间 (UTC)</th><th>事件</th></tr></thead><tbody>
+<tr><td>2026-06-15 ~15:00</td><td>Blockaid Exploit Detection 系统检测到 Thetanuts 合约的异常交互</td></tr>
+<tr><td>2026-06-15 ~15:16</td><td>PeckShieldAlert 在 X 上发布告警推文</td></tr>
+<tr><td>2026-06-15 ~15:30</td><td>ExVul 发布根因分析</td></tr>
+<tr><td>2026-06-15 ~17:00</td><td>Thetanuts Finance 官方确认攻击，声明受影响vault已弃用数年</td></tr>
+<tr><td>2026-06-15 ~18:00</td><td>白帽完成约 $2M option tokens 的回收</td></tr>
+</tbody></table>
+<h3>攻击步骤</h3>
+<pre><code>
+1. 闪电贷借入资金
+2. 通过 claim 操作将 vault 的 totalSupply 消耗至接近 0
+3. 触发整数除法截断 → depositAmount 计算结果为 0
+4. 零成本铸造大量 index tokens
+5. 使用铸造的 tokens 提取 vault 中的真实资产（USDC等）
+6. 归还闪电贷
+7. 将 $105K USDC 兑换为 ~60 ETH（打破链上可追踪性）
+</code></pre>
+<hr>
+<h2>Fund Flow &amp; Key Addresses</h2>
+<h3>资金流向</h3>
+<table><thead><tr><th>类别</th><th>金额</th><th>状态</th></tr></thead><tbody>
+<tr><td>总损失</td><td>~$2.1M</td><td>—</td></tr>
+<tr><td>白帽回收（option tokens）</td><td>~$2.0M</td><td>✅ 已回收</td></tr>
+<tr><td>攻击者兑换为 ETH</td><td>$105K USDC → ~60 ETH</td><td>⚠️ 已转换</td></tr>
+<tr><td>攻击者持有（option tokens）</td><td>~$34K USDC</td><td>⚠️ 未回收</td></tr>
+<tr><td><strong>净损失</strong></td><td><strong>~$139K</strong></td><td>—</td></tr>
+</tbody></table>
+<h3>关键链上数据</h3>
+<ul>
+<li><strong>攻击交易</strong>: <code>0xbba9….c39fec</code>（Blockaid 识别）</li>
+<li><strong>被攻击合约</strong>: Thetanuts Finance deprecated index-token vault（具体地址由 Blockaid 在 X 上披露）</li>
+<li><strong>攻击者地址</strong>: 由 Blockaid 在 X 上披露（具体地址见来源链接）</li>
+<li><strong>链</strong>: Ethereum</li>
+</ul>
+<hr>
+<h2>Case Background: Thetanuts Finance</h2>
+<p>Thetanuts Finance 是一个去中心化期权结构化产品协议，提供期权代币的铸造和交易。协议在迁移过程中将旧 vault 弃用，但未对弃用合约执行资产清理或自毁操作。</p>
+<p><strong>官方声明</strong> (2026-06-15):</p>
+<p>&gt; &quot;Our preliminary investigation indicates that this is once again, a deprecated vault that we have migrated from years ago. It has no relation with any of our current contracts or products. We will release a post-mortem once we get more details.&quot;</p>
+<hr>
+<h2>Pattern Analysis: &quot;僵尸合约&quot;连环攻击</h2>
+<h3>24小时内两起 Deprecated Contract 攻击</h3>
+<table><thead><tr><th>事件</th><th>日期</th><th>损失</th><th>漏洞类型</th><th>合约状态</th></tr></thead><tbody>
+<tr><td>Aztec Connect</td><td>2026-06-14</td><td>$2.19M</td><td>ZK验证↔L1结算不匹配</td><td>不可变（已放弃admin keys）</td></tr>
+<tr><td>Thetanuts Finance</td><td>2026-06-15</td><td>$2.1M</td><td>整数除法截断</td><td>已弃用数年</td></tr>
+<tr><td><strong>合计</strong></td><td><strong>48h</strong></td><td><strong>$4.29M</strong></td><td>—</td><td>—</td></tr>
+</tbody></table>
+<h3>攻击模式特征</h3>
+<ol>
+<li><strong>目标选择</strong>: 已弃用但链上仍存活、仍持有资产的合约</li>
+<li><strong>扫描方式</strong>: 可能通过自动化扫描所有含资产的 deprecated 合约</li>
+<li><strong>为什么现在爆发</strong>:</li>
+</ol>
+<ul>
+<li>DeFi 安全工具（Blockaid、PeckShield）的实时监控使攻击窗口缩短</li>
+<li>攻击者转向竞争较少的&quot;蓝海&quot;目标——废弃合约无人监控</li>
+<li>数学类漏洞（整数截断、边界条件）在旧代码中普遍存在</li>
+</ul>
+<h3>与更广泛趋势的关联</h3>
+<ul>
+<li><strong>Raydium AMM V3</strong> ($1.34M, 2026-06-11): 同样是 legacy pool 被攻击</li>
+<li><strong>6月 deprecated contract 攻击累计</strong>: $4.29M+（仅 Aztec + Thetanuts）</li>
+<li><strong>行业模式</strong>: 弃用≠安全终结。合约永远在线，但无人维护</li>
+</ul>
+<hr>
+<h2>Lessons Learned</h2>
+<h3>对协议开发者</h3>
+<ol>
+<li><strong>弃用流程必须包含资产清理</strong>: 迁移 vault 后，旧合约中的资产必须全部提取或合约必须自毁</li>
+<li><strong>整数除法是经典陷阱</strong>: <code>a * b / c</code> 在 Solidity 中的截断行为需要在 supply 趋近0的边界条件下测试</li>
+<li><strong>Deprecated 合约需要监控</strong>: 即使不再活跃，仍需要设置基本的异常交互告警</li>
+</ol>
+<h3>对用户</h3>
+<ol>
+<li><strong>弃用协议中的资产≠安全资产</strong>: 旧 vault 可能无人维护、无人监控</li>
+<li><strong>及时迁移</strong>: 协议宣布迁移时，用户应及时将资产转移至新合约</li>
+<li><strong>白帽响应是关键防线</strong>: 本次事件中白帽回收了95%的资金</li>
+</ol>
+<h3>对 ChainSentinel 项目的启示</h3>
+<p>本次事件再次验证了独立监控层的必要性：</p>
+<ul>
+<li>Deprecated vault 缺少内部监控 → 需要外部独立检测</li>
+<li>Blockaid 在本次事件中发挥了关键作用（实时检测+攻击路径分析）</li>
+<li>可以开发 &quot;deprecated contract scanner&quot; 功能——扫描所有含资产的弃用合约并持续监控</li>
+</ul>
+<hr>
+<h2>Legal Implications</h2>
+<ul>
+<li>攻击者利用数学漏洞而非私钥盗窃，在法律定性上更接近&quot;未授权访问&quot;</li>
+<li>白帽回收行为在法律灰色地带——未经授权的合约交互</li>
+<li>Thetanuts 作为协议方未造成用户直接损失（当前产品未受影响），但遗留合约的资产归属存在争议</li>
+</ul>
+<hr>
+<h2>References</h2>
+<ol>
+<li>PeckShieldAlert X 推文: https://x.com/PeckShieldAlert/status/2066540451126190312</li>
+<li>Blockaid Exploit Detection 告警: https://x.com/blockaid_/status/2066524884583215322</li>
+<li>ExVul 根因分析: https://x.com/exvulsec/status/2066536104187322669</li>
+<li>Thetanuts Finance 官方声明: https://x.com/ThetanutsFi/status/2066569315961454925</li>
+<li>Cryptopolitan 报道: https://www.cryptopolitan.com/hack-deprecated-thetanuts-vault/</li>
+<li>Crypto-Economy 报道: https://crypto-economy.com/thetanutsfi-suffers-2-1-million-exploit-white-hat-recovers-most-funds/</li>
+<li>CoinPost 分析: https://coinpost.ai/en/topics/115973</li>
+<li>CryptoTimes 技术分析: https://v_cryptotimes_io.oszar.com/https/2026/06/15/2-1m-exploit-hits-thetanuts-inside-the-latest-defi-flash-loan/</li>
+<li>SlowMist/ChainCatcher: https://www.bitget.online/news/detail/12560605461393</li>
+</ol>
+<hr>
+<p><em>Investigator: Onchain Shadow</em></p>
+<p><em>OPSEC Statement / Disclaimer: 本报告基于公开来源信息编写，包括区块链安全公司报告、安全研究者在社交媒体发布的技术分析、以及新闻媒体报道。所有链上数据和分析均基于截至2026年6月16日的公开信息。本报告不构成投资建议，不代表对任何项目或个人的指控。链上地址和交易信息来源于第三方安全公司的公开披露。</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BonkDAO 治理攻击调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>BonkDAO 治理攻击调查报告</h1>
+<h2>$20M Treasury Drain via Malicious Governance Proposal</h2>
+<p><strong>调查时间</strong>：2026-07-08</p>
+<p><strong>调查人</strong>：Onchain Shadow</p>
+<p><strong>ZachXBT覆盖状态</strong>：❌ 未覆盖（事件发生于7月6日，搜索结果未见ZachXBT发布相关调查）</p>
+<p><strong>执法介入</strong>：✅ 已通知执法部门，BonkDAO与Bybit/Binance/Kraken/Upbit/Solana Foundation协调追踪</p>
+<hr>
+<h2>Executive Summary</h2>
+<p>2026年7月6日（美东时间凌晨约4:00），Solana生态头部Meme币BONK的治理组织BonkDAO遭遇治理攻击（Governance Attack）。攻击者通过在Realms治理平台发起恶意提案BIP #76，以&quot;投票买票&quot;方式在无需任何智能合约漏洞的前提下，合法地抽走了BonkDAO财库中约4.4万亿枚BONK代币，价值约<strong>$20M</strong>。</p>
+<p>整个攻击过程完全合规于BonkDAO的链上治理规则——攻击者花费约<strong>$4.4M</strong>购买882.285亿枚BONK（通过Bybit和Binance），获得提案通过所需的最低票数（总供应量1%，约879.95亿票），最终以99.878%的投票权重通过提案。整个财库在提案通过后自动执行转账，无任何人工干预窗口。</p>
+<p>投票参与率仅<strong>2.9%</strong>（7个钱包参与，BonkDAO自称拥有18,000+成员），攻击者以自己与自己投票的形式完成了这次&quot;合法抢劫&quot;。</p>
+<hr>
+<h2>事件背景</h2>
+<h3>受害者</h3>
+<ul>
+<li><strong>BonkDAO</strong>：BONK代币的去中心化治理组织，BONK是Solana生态最知名的Meme币之一，2022年12月上线，以大规模空投闻名，部分ETF亦有配置</li>
+<li><strong>BonkDAO财库规模</strong>：约占BONK总供应量的15-16%，是Meme币领域规模最大的DAO财库之一</li>
+<li><strong>BONK历史最高价</strong>：$0.000058；事件后跌至约$0.0000043，跌幅约93%</li>
+</ul>
+<h3>攻击者画像</h3>
+<ul>
+<li>通过Bybit和Binance账户购买BONK，积累了882.285亿枚代币（约$4.4M）</li>
+<li>可能还通过DeFi借贷平台借入了额外代币（Lookonchain分析）</li>
+<li><strong>资金ROI：约4.5倍</strong>（$4.4M → $20M）</li>
+</ul>
+<hr>
+<h2>攻击链路全解析</h2>
+<h3>第一阶段：6月30日 — 提案提交</h3>
+<p>攻击者匿名钱包在Solana Realms治理平台提交了<strong>BIP #76</strong>号提案，标题为<strong>&quot;Sowellian BonkDAO&quot;</strong>。</p>
+<p>提案表面内容：</p>
+<ul>
+<li>引入&quot;Sowellian治理机制&quot;</li>
+<li>更换委员会成员和理事会</li>
+<li>重组DAO，处置/变现持有资产</li>
+<li>&quot;从灰烬中重建&quot;、&quot;止血&quot;、&quot;停止烧钱&quot;</li>
+</ul>
+<p>提案中还包含一个激励条款：<strong>所有投&quot;YES&quot;的投票者都有资格获得BONK代币奖励</strong>——这是攻击者用来诱导投票的诱饵。</p>
+<p><strong>提案实质</strong>：在第二个执行步骤中，隐藏了将约4.43万亿枚BONK从财库转入攻击者控制钱包的指令。BonkDAO官方表示，这一关键指令被有意放置在不显眼的位置，以降低被快速发现的风险。</p>
+<p>&gt; 注意：&quot;Sowellian&quot;一词本是Solana Realms治理平台设计的&quot;博弈预测市场机制&quot;名称，攻击者故意以此命名提案，利用了平台的&quot;游戏规则&quot;来实施抢劫，极具讽刺意味。</p>
+<hr>
+<h3>第二阶段：7月4日-5日 — 积累投票权</h3>
+<p>提案通过条件：需要至少1%总供应量的票数，即约<strong>879.95亿枚BONK</strong>投&quot;YES&quot;。</p>
+<p>攻击者在7月4日和5日通过Bybit和Binance购买了约<strong>882.285亿枚BONK</strong>，花费约<strong>$4.4M</strong>。这些购买通过交易所钱包分散完成，避免引起注意。</p>
+<p>Lookonchain指出，攻击者还可能通过DeFi借贷平台借入了额外代币以确保达到门槛。</p>
+<hr>
+<h3>第三阶段：7月6日（美东时间约4:00 AM）— 提案通过并执行</h3>
+<p>投票窗口关闭后，<strong>仅有7个钱包地址参与投票</strong>，超过18,000名DAO成员无人响应。</p>
+<table><thead><tr><th>指标</th><th>数据</th></tr></thead><tbody>
+<tr><td>参与投票钱包数</td><td>7</td></tr>
+<tr><td>BonkDAO自称成员数</td><td>18,000+</td></tr>
+<tr><td>投票参与率</td><td><strong>2.9%</strong></td></tr>
+<tr><td>攻击者投票权重</td><td><strong>99.878%</strong></td></tr>
+<tr><td>YES票数</td><td>882.285亿（刚好超过879.95亿门槛）</td></tr>
+<tr><td>NO票数</td><td>0</td></tr>
+</tbody></table>
+<p>几乎刚好等于门槛的票数，说明&quot;社区共识&quot;实质上只是攻击者与自己的投票。</p>
+<p>提案通过后，智能合约按预设程序<strong>自动执行转账</strong>：</p>
+<ul>
+<li>约4.43万亿枚BONK（当时价值约<strong>$19.3M</strong>）从BonkDAO财库钱包转出</li>
+<li>目标地址：末尾为<strong>&quot;JHvQ&quot;</strong>的Solana钱包</li>
+<li>该钱包通过Solscan被识别为通过<strong>Bybit账户</strong>注资</li>
+</ul>
+<hr>
+<h3>第四阶段：资金转移与洗钱</h3>
+<p>攻击者对两批代币采取了截然不同的策略：</p>
+<p><strong>财库盗取的$20M BONK（囤积待变现）：</strong></p>
+<ul>
+<li>约9小时后，仅有约<strong>$188,000</strong>的BONK被发送至交易所（疑似开始试探性变现）</li>
+<li>剩余约<strong>$19M</strong>转入<strong>多签钱包</strong>安全保管</li>
+<li>另有部分资金被转移至末尾为<strong>&quot;eh42&quot;</strong>的另一个Solana地址</li>
+<li>攻击者从未向任何投票支持者分发承诺的代币奖励</li>
+</ul>
+<p><strong>用于购买投票权的$4.4M BONK（急于脱手）：</strong></p>
+<ul>
+<li>财库清空后约1小时，攻击者开始出售这批代币</li>
+<li>累计变现约<strong>$5.3M</strong></li>
+<li>快速处置投票代币以规避BONK价格波动风险</li>
+</ul>
+<hr>
+<h2>BonkDAO治理系统的三重致命缺陷</h2>
+<p>本次攻击揭示了BonkDAO治理架构的三层结构性漏洞，任意一层得到修复都可能阻止攻击：</p>
+<h3>1. 无意义的法定人数要求</h3>
+<ul>
+<li>仅需1%总供应量即可通过涉及财库资产转移的提案</li>
+<li>18,000+成员中仅7人投票，提案仍然&quot;合法&quot;通过</li>
+<li>建议：财库级资产转移应设置高得多的门槛（如10-25%参与率 + 2/3超级多数）</li>
+</ul>
+<h3>2. 无执行时间锁（Timelock）</h3>
+<ul>
+<li>提案通过后，资产转移<strong>即时自动执行</strong>，无任何缓冲期</li>
+<li>社区无窗口发现恶意提案、无暇组织反应</li>
+<li>建议：财库操作应设置3-7天执行时间锁，允许社区或多签管理员提出异议</li>
+</ul>
+<h3>3. 无紧急干预机制</h3>
+<ul>
+<li>无多签管理控制权可用于紧急冻结异常财库转移</li>
+<li>没有任何人工审核步骤</li>
+<li>建议：大额财库操作应要求多签管理者的明确批准</li>
+</ul>
+<hr>
+<h2>与历史治理攻击对比</h2>
+<table><thead><tr><th>事件</th><th>年份</th><th>方式</th><th>损失</th><th>特点</th></tr></thead><tbody>
+<tr><td><strong>Beanstalk</strong></td><td>2022</td><td>Flash贷攻击</td><td>&gt;$100M</td><td>单区块完成，无需预付资本</td></tr>
+<tr><td><strong>Tornado Cash</strong></td><td>2023</td><td>恶意提案夺取治理权</td><td>全部治理权</td><td>一度完全控制整个协议</td></tr>
+<tr><td><strong>Compound</strong></td><td>2024</td><td>内部人鲸鱼推动有利提案</td><td>数千万</td><td>争议性大，社区分裂</td></tr>
+<tr><td><strong>BonkDAO</strong></td><td>2026</td><td>慢速积累+低参与率</td><td>$20M</td><td>完全合规，DAO规则完美执行</td></tr>
+</tbody></table>
+<p>BonkDAO攻击的独特性在于：它展示了即使对于技术完全&quot;正确&quot;的DAO治理系统，只要治理规则本身设计不当，经济攻击仍然可以完美地&quot;依法&quot;完成抢劫。</p>
+<hr>
+<h2>攻击者经济数学</h2>
+<pre><code>
+攻击成本：  $4.4M（购买882.285亿BONK）
+攻击收益：  ~$20M（4.4万亿BONK财库代币）
+净收益：    ~$15.6M（扣除变现投票代币后）
+ROI：       ~455%（$4.4M → $15.6M+）
+风险：      低（交易所冻结前已变现投票代币）
+</code></pre>
+<hr>
+<h2>处置进展</h2>
+<ul>
+<li><strong>Upbit &amp; Kraken</strong>：暂停BONK充提，以用户保护为由</li>
+<li><strong>BonkDAO官方</strong>：确认事件性质为&quot;恶意治理提案&quot;，已报案，与执法部门合作</li>
+<li><strong>Solana Foundation</strong>：参与追踪</li>
+<li><strong>Bybit / Binance</strong>：配合识别攻击者充币账户</li>
+<li><strong>OKX</strong>：已接收约$148,000的BONK（ PeckShield链上追踪）</li>
+</ul>
+<hr>
+<h2>关键IOCs</h2>
+<table><thead><tr><th>类型</th><th>详情</th></tr></thead><tbody>
+<tr><td>恶意提案</td><td>BIP #76 — &quot;Sowellian BonkDAO&quot;</td></tr>
+<tr><td>攻击者接收钱包</td><td>Solana地址末尾 &quot;JHvQ&quot;（Bybit注资）</td></tr>
+<tr><td>攻击者中转钱包</td><td>Solana地址末尾 &quot;eh42&quot;</td></tr>
+<tr><td>投票购买来源</td><td>Bybit + Binance</td></tr>
+<tr><td>投票购买数量</td><td>~882,285,000,000 BONK（$4.4M）</td></tr>
+<tr><td>财库损失</td><td>~4,426,000,000,000 BONK（~$20M）</td></tr>
+<tr><td>C2服务器</td><td>23.137.105.75:5173（UNK_DeadDrop无关，仅供参考）</td></tr>
+</tbody></table>
+<hr>
+<h2>独特分析角度</h2>
+<ol>
+<li><strong>&quot;合规犯罪&quot;范式</strong>：展示了DeFi领域一个全新犯罪逻辑——无需技术漏洞，只要规则设计有缺陷，攻击者可以用&quot;买票&quot;方式完成合法抢劫</li>
+</ol>
+<ol>
+<li><strong>Memecoin DAO的系统性风险</strong>：BonkDAO拥有18,000+成员但仅2.9%参与治理，这种&quot;形式民主&quot;正在成为资金充裕的攻击者的首选目标</li>
+</ol>
+<ol>
+<li><strong>DAO治理的&quot;不可能三角&quot;</strong>：去中心化 vs 效率 vs 安全——BonkDAO选择了完全开放参与，但为此付出了$20M的代价</li>
+</ol>
+<ol>
+<li><strong>Realms平台的Sowellian机制被反向利用</strong>：攻击者利用平台最引以为傲的&quot;博弈规则&quot;完成抢劫，具有极强的叙事价值</li>
+</ol>
+<ol>
+<li><strong>交易所响应速度</strong>：Upbit/Kraken在事件后数小时内完成BONK充提暂停——这是目前对抗此类攻击最有效的响应手段</li>
+</ol>
+<hr>
+<h2>教训与启示</h2>
+<p><strong>对于DAO：</strong></p>
+<ul>
+<li>财库资产保护优先级应与智能合约安全同等对待</li>
+<li>涉及财库转移的提案必须有高门槛：参与率 + 超级多数 + 时间锁 + 多签批准</li>
+<li>提案内容审查机制不可缺失（BonkDAO的提案可以写入任意执行指令）</li>
+</ul>
+<p><strong>对于Token Holder：</strong></p>
+<ul>
+<li>Memecoin并非&quot;纯社区项目&quot;，大型财库是真实的高价值攻击目标</li>
+<li>DAO治理参与率低迷是全行业的定时炸弹</li>
+</ul>
+<p><strong>对于安全研究员：</strong></p>
+<ul>
+<li>治理攻击的经济分析比技术审计更能预测风险</li>
+<li>评估一个DAO的安全性，应首先审视其治理参数，而非合约代码</li>
+</ul>
+<hr>
+<h2>免责声明 / OPSEC Statement</h2>
+<p>本调查报告基于公开链上数据、官方公告及第三方分析。所有钱包地址、交易哈希、合约地址均来自公开来源（Solscan、Lookonchain、Chainalysis、BonkDAO官方声明等）。</p>
+<p>本报告仅供安全研究与社区教育目的，不构成任何法律建议。链上地址分析不构成对任何特定个人或实体的指认。</p>
+<p><strong>OPSEC</strong>：调查全程基于公开数据，未使用任何隐私规避技术，未关联任何可识别个人身份的信息。</p>
+<hr>
+<p><em>Investigator: Onchain Shadow</em></p>
+<p><em>调查时间: 2026-07-08</em></p>
+<p><em>数据来源：BonkDAO官方声明（X @bonk_inu）、Foresight News、CryptoCompass、Crypto.news、CoinDesk、Decrypt、Woofun AI、Lookonchain、Chainalysis、Solscan</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

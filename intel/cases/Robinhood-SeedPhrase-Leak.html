@@ -1,0 +1,237 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robinhood创始人Seed Phrase泄露 → $1 Memecoin Pump-and-Dump 调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Robinhood创始人Seed Phrase泄露 → $1 Memecoin Pump-and-Dump 调查报告</h1>
+<p>&gt; 调查人：onchain-shadow</p>
+<p>&gt; 日期：2026-07-14</p>
+<p>&gt; 状态：初始调查完成，持续监控中</p>
+<p>&gt; OPSEC：本报告基于公开来源，不涉及任何个人隐私泄露</p>
+<hr>
+<h2>事件概述</h2>
+<p>Robinhood联合创始人兼CEO <strong>Vlad Tenev</strong> 在一次直播中意外暴露了自托管钱包的助记词（mnemonic seed phrase），攻击者迅速导入钱包获取控制权（内含约 <strong>$1.5M</strong> 资产），随后利用该&quot;知名钱包&quot;的信用信号，大举买入低市值memecoin <strong>$1</strong>，触发数千名链上跟随交易者的羊群效应，在约2小时内将 $1 代币市值从 <strong>$500K 拉升至 $14M</strong>，交易量达 <strong>$20M+</strong>。</p>
+<p>随后价格暴跌，攻击者在Robinhood Chain上相关地址被RPC级别冻结后，迅速迁移至 <strong>BNB Chain</strong>，发行新代币并通过 <strong>wash trading</strong> 套现退出。</p>
+<hr>
+<h2>关键数据</h2>
+<table><thead><tr><th>指标</th><th>数据</th></tr></thead><tbody>
+<tr><td>事件时间</td><td>2026年7月13日（直播泄露发生在周三/7月9日，攻击发生在7月13日被公开披露）</td></tr>
+<tr><td>受影响代币</td><td>$1 memecoin（Robinhood Chain）</td></tr>
+<tr><td>钱包资产</td><td>~$1.5M（Vlad Tenev自托管钱包）</td></tr>
+<tr><td>$1代币市值变化</td><td>$500K → $14M（28倍涨幅，2小时内）</td></tr>
+<tr><td>2小时交易量</td><td>~$20M</td></tr>
+<tr><td>受害者</td><td>数千名跟随交易的散户</td></tr>
+<tr><td>攻击者后续</td><td>迁移至BNB Chain，发行新代币+wash trading套现</td></tr>
+<tr><td>应对措施</td><td>Robinhood RPC服务冻结了被入侵地址</td></tr>
+<tr><td>信息源</td><td>TokenPocket CBO Michael（@0xMichael）在X上首次披露</td></tr>
+</tbody></table>
+<hr>
+<h2>攻击时间线</h2>
+<pre><code>
+[D-4] 周三（~7月9日）
+  └─ Vlad Tenev直播中意外暴露助记词
+  └─ 攻击者截取助记词，导入钱包（TokenPocket），获取~$1.5M资产控制权
+
+[D-Day] 7月13日
+  ├─ 攻击者使用被入侵地址+关联地址大量买入$1代币
+  ├─ 链上监控者识别到&quot;Robinhood创始人钱包&quot;的活动
+  ├─ 数千名copy-trader自动跟随买入
+  ├─ $1代币市值：$500K → $14M（~28x）
+  ├─ 2小时内交易量达$20M+
+  ├─ 攻击者开始抛售
+  ├─ 价格暴跌
+  ├─ Robinhood RPC服务冻结被入侵地址
+  ├─ 冻结无法逆转已执行交易
+  └─ 攻击者迁移至BNB Chain
+      ├─ 发行新代币
+      ├─ 使用关联地址进行wash trading
+      └─ 制造虚假交易量并套现
+
+[D+1] 7月14日
+  └─ TokenPocket CBO Michael在X上公开披露事件全貌
+  └─ 多家媒体跟进报道
+</code></pre>
+<hr>
+<h2>攻击机制分析</h2>
+<h3>1. 初始入侵：助记词物理泄露</h3>
+<p>这不是传统意义上的&quot;黑客攻击&quot;。助记词在直播画面中被展示，任何观看者都可以记录并导入钱包。这是<strong>人因失误（human error）</strong>而非技术漏洞。</p>
+<p><strong>关键点</strong>：助记词是钱包的最高权限凭证——不同于密码可以被重置，助记词泄露意味着钱包完全失控。</p>
+<h3>2. 武器化&quot;Smart Money&quot;信号</h3>
+<p>攻击的核心不是技术层面的——而是<strong>社会工程层面的</strong>。</p>
+<p>链上交易生态中，大量交易者使用bot监控&quot;知名钱包&quot;（founder wallets、whale wallets、historically profitable wallets）并自动跟单。这些bot的设计假设是：被监控的钱包所有者在做知情决策。</p>
+<p><strong>攻击向量</strong>：一旦攻击者控制了被监控的钱包，跟随者的自动化系统和羊群本能就变成了pump机制。<strong>不需要虚假交易量——只需要一个可辨识的买入信号。</strong></p>
+<h3>3. 跨链逃逸</h3>
+<p>Robinhood RPC冻结被入侵地址后，攻击者立即：</p>
+<ul>
+<li>迁移至BNB Chain（不同链，冻结无效）</li>
+<li>发行新代币</li>
+<li>使用wash trading（自买自卖）制造虚假交易量</li>
+<li>最终套现</li>
+</ul>
+<p>这展示了现代链上攻击者的<strong>多链适应能力</strong>——单链冻结无法阻止跨链攻击。</p>
+<hr>
+<h2>攻击者画像</h2>
+<table><thead><tr><th>特征</th><th>描述</th></tr></thead><tbody>
+<tr><td>类型</td><td>机会主义攻击者（非国家级APT）</td></tr>
+<tr><td>初始向量</td><td>直播截取助记词</td></tr>
+<tr><td>技术水平</td><td>中等——理解链上跟单机制、跨链操作、wash trading</td></tr>
+<tr><td>动机</td><td>经济利益</td></tr>
+<tr><td>适应性</td><td>高——被冻结后迅速迁移至BNB Chain</td></tr>
+</tbody></table>
+<hr>
+<h2>ZachXBT覆盖状态</h2>
+<p>❌ <strong>未覆盖</strong></p>
+<p>ZachXBT近期注意力集中在：</p>
+<ul>
+<li>LAB Token团队抛售调查（7月11-12日）</li>
+<li>Bybit $1.4B被盗资金追踪</li>
+<li>XRP社区争议</li>
+</ul>
+<p>$1代币pump-and-dump事件尚未被ZachXBT或主流链上侦探覆盖。</p>
+<hr>
+<h2>独特分析价值</h2>
+<h3>1. &quot;Smart Money武器化&quot;——链上跟单系统的系统性风险</h3>
+<p>这不是简单的rug pull。这是对链上&quot;透明性&quot;本身的攻击。DeFi的透明性（所有交易公开可见）本是安全特性，但在这里变成了攻击面：</p>
+<ul>
+<li>钱包活动公开 → 触发跟单bot → 自动pump → 攻击者获利</li>
+</ul>
+<p><strong>这是首次被公开记录的&quot;通过入侵知名钱包+触发跟单效应&quot;的pump-and-dump攻击。</strong></p>
+<h3>2. 自托管悖论</h3>
+<p>Robinhood是一个以&quot;让散户投资更简单&quot;为使命的平台，同时发布自托管指南警告用户永远不要分享助记词。讽刺的是，CEO本人在直播中暴露了助记词。</p>
+<h3>3. Robinhood Chain安全生态的系统性问题</h3>
+<p>这不是Robinhood Chain上线以来唯一的安全事件：</p>
+<ul>
+<li>蜜罐代币（honeypot）泛滥</li>
+<li>钱包drainer遍布</li>
+<li>代币&quot;购买后消失&quot;的新型攻击</li>
+<li>Relay Protocol不得不主动拦截恶意代币</li>
+<li>75%+交易量为memecoin（而非RWA）</li>
+</ul>
+<p>Robinhood Chain在上线2周内经历了其他链需要数年才能积累的&quot;安全事件密度&quot;。</p>
+<h3>4. 跨链冻结逃逸</h3>
+<p>Robinhood RPC冻结被入侵地址——这是去中心化网络中罕见的&quot;审查&quot;行为。但攻击者通过迁移到BNB Chain轻松绕过。这证明：<strong>单链冻结对于跨链攻击者无效</strong>。</p>
+<hr>
+<h2>链上数据</h2>
+<h3>已知地址</h3>
+<ul>
+<li>Vlad Tenev被入侵钱包（Robinhood Chain）：地址待公开确认</li>
+<li>攻击者关联地址（BNB Chain）：地址待追踪</li>
+</ul>
+<h3>交易特征</h3>
+<ul>
+<li>$1代币：从$500K市值到$14M市值，2小时28x涨幅</li>
+<li>交易量：$20M+（2小时内）</li>
+<li>BNB Chain端：新代币发行 + wash trading模式</li>
+</ul>
+<h3>待追踪</h3>
+<ul>
+<li>攻击者从Robinhood Chain到BNB Chain的资金桥接路径</li>
+<li>wash trading关联钱包集群</li>
+<li>最终套现路径（CEX出金/OTC）</li>
+</ul>
+<hr>
+<h2>行业背景与关联事件</h2>
+<h3>2026年7月安全事件统计</h3>
+<ul>
+<li>Q2 2026创纪录：83起攻击，$755M损失</li>
+<li>2026上半年：121起攻击，~$942M损失</li>
+<li>DeFi TVL从1月$115B降至6月$70B（-39%）</li>
+<li>Wash trading在2025年达$2.57B（Solidus Labs数据）</li>
+</ul>
+<h3>与已有调查的关联</h3>
+<table><thead><tr><th>事件</th><th>关联模式</th></tr></thead><tbody>
+<tr><td>SpaceX/Starlink SCATMAN（07-12）</td><td>同属&quot;Robinhood Chain+品牌信任被武器化&quot;系列</td></tr>
+<tr><td>Robinhood Chain scam epidemic</td><td>同一生态系统的安全问题</td></tr>
+<tr><td>jscrambler npm供应链攻击（07-11）</td><td>同为&quot;凭证泄露→快速利用&quot;模式</td></tr>
+</tbody></table>
+<hr>
+<h2>风险评估</h2>
+<table><thead><tr><th>维度</th><th>评级</th><th>说明</th></tr></thead><tbody>
+<tr><td>损失规模</td><td>🟡 中等</td><td>直接损失分散在数千散户中，无统一统计</td></tr>
+<tr><td>教育价值</td><td>🔴 极高</td><td>助记词安全+跟单风险+跨链攻击</td></tr>
+<tr><td>独特性</td><td>🔴 高</td><td>首次公开记录的&quot;入侵知名钱包+触发跟单&quot;攻击</td></tr>
+<tr><td>ZachXBT覆盖</td><td>✅ 未覆盖</td><td>填补空白</td></tr>
+<tr><td>对用户价值</td><td>🔴 高</td><td>用户运营链上调查站+X账号，此事件与&quot;链上安全&quot;定位高度一致</td></tr>
+</tbody></table>
+<hr>
+<h2>数据来源</h2>
+<ol>
+<li><strong>TokenPocket CBO Michael (@0xMichael) X帖子</strong> — 首次披露</li>
+</ol>
+<ul>
+<li>https://x.com/0xMichael/status/2076480650958299193</li>
+</ul>
+<ol>
+<li><strong>Cryptopolitan</strong> — &quot;Seed phrase leak pumps memecoin to $14M&quot;</li>
+</ol>
+<ul>
+<li>https://www.cryptopolitan.com/exposed-recovery-phrase-14m-memecoin/</li>
+</ul>
+<ol>
+<li><strong>DodgeTheScam</strong> — &quot;Robinhood Co-founder&#x27;s Leaked Wallet Used to Pump $1 Memecoin to $14M&quot;</li>
+</ol>
+<ul>
+<li>https://dodgethescam.com/robinhood-cofounder-wallet-memecoin-14m/</li>
+</ul>
+<ol>
+<li><strong>CoinAlertNews</strong> — &quot;Hacker Uses Stolen Robinhood Founder Wallet&quot;</li>
+</ol>
+<ul>
+<li>https://coinalertnews.com/news/2026/07/13/hacker-robinhood-wallet-memecoin-pump</li>
+</ul>
+<ol>
+<li><strong>CoinTime.ai</strong> — &quot;Robinhood Founder&#x27;s Seed Phrase Leaked During Livestream&quot;</li>
+</ol>
+<ul>
+<li>https://www.cointime.ai/flash-news/robinhood-founder-22268</li>
+</ul>
+<ol>
+<li><strong>CoinNewsSpan</strong> — &quot;TokenPocket CBO Claims Robinhood Co-Founder&#x27;s Seed Phrase Leaked&quot;</li>
+</ol>
+<ul>
+<li>https://www.coinnewsspan.com/robinhood-founder-seed-phrase-leaked/</li>
+</ul>
+<ol>
+<li><strong>CoinAlertNews</strong> — &quot;Robinhood Chain Stumbles in Debut Week&quot;</li>
+</ol>
+<ul>
+<li>https://coinalertnews.com/news/2026/07/13/robinhood-chain-debut-security-issues</li>
+</ul>
+<hr>
+<p><em>调查人：onchain-shadow</em></p>
+<p><em>OPSEC：本报告基于公开来源扫描，不涉及任何个人隐私泄露</em></p>
+<p><em>下一步：如获取链上追踪数据，可更新调查报告</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

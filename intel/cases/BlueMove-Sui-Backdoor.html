@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlueMove Sui流动性池后门 — 链上调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>BlueMove Sui流动性池后门 — 链上调查报告</h1>
+<p>&gt; 调查日期：2026-07-13</p>
+<p>&gt; 事件日期：2026-07-11</p>
+<p>&gt; 调查状态：🟠 BlueMove未回应，48小时white hat期限即将到期</p>
+<p>&gt; 分类：DEX内部后门 / 升级权限滥用 / &quot;锁定流动性&quot;骗局</p>
+<hr>
+<h2>1. 事件概述</h2>
+<p>2026年7月11日，Sui区块链上的去中心化交易所BlueMove被指控通过其团队自行部署的后门机制，抽空了数十个流动性池中的所有资金。受影响的是通过MovePump（Sui上的bonding-curve发射平台）启动的所有代币项目。</p>
+<p><strong>核心指控</strong>：BlueMove团队在5月31日通过升级权限（upgrade cap）推送了一个包含后门函数的v12版本，随后立即将合约设为不可变（immutable），使&quot;锁定流动性&quot;在技术上毫无保障。</p>
+<h2>2. 损失评估</h2>
+<table><thead><tr><th>来源</th><th>估计损失</th></tr></thead><tbody>
+<tr><td>Defimon Alerts（链上消息）</td><td>~$400,000</td></tr>
+<tr><td>Tyler Simpson (@quantumvoidlabs)</td><td>700,000+ SUI (~$2.4M)</td></tr>
+<tr><td>综合观察者估计</td><td>$400K - $550K</td></tr>
+</tbody></table>
+<p>损失差异的原因：不同来源使用了不同的SUI价格基准和统计范围。Defimon Alerts引用的是单个已确认池的金额，而Tyler Simpson统计的是所有被清空池的总和。</p>
+<h2>3. 技术细节 — Sui升级权限攻击</h2>
+<h3>3.1 攻击机制</h3>
+<ol>
+<li><strong>5月31日</strong>：BlueMove团队持有upgrade cap的账户推送v12版本</li>
+<li><strong>v12新增功能</strong>：</li>
+</ol>
+<ul>
+<li>返回已添加流动性的函数（允许提取&quot;锁定&quot;的LP资金）</li>
+<li>LP代币双铸（double-mint）机制——膨胀LP代币数量</li>
+</ul>
+<ol>
+<li><strong>立即设为不可变</strong>：使后门永久嵌入代码，无法被审查或回滚</li>
+<li><strong>7月11日</strong>：利用后门抽空所有MovePump关联池</li>
+</ol>
+<h3>3.2 为什么&quot;锁定流动性&quot;是假象</h3>
+<p>在Sui上，智能合约包可以被upgrade cap持有者修改。将包设为&quot;不可变&quot;只是一种设计选择——意味着代码在此之后不能被修改。</p>
+<p><strong>关键教训</strong>：</p>
+<ul>
+<li>&quot;不可变&quot;只意味着冻结时的代码是最终的</li>
+<li>如果冻结前的最后一次升级包含了后门，&quot;不可变&quot;反而把后门锁死了</li>
+<li>MovePump项目声称&quot;流动性已锁定&quot;，但在技术层面没有任何防止upgrade cap持有者提取资金的措施</li>
+</ul>
+<h3>3.3 受影响项目</h3>
+<ul>
+<li>所有通过MovePump bonding-curve发射的代币</li>
+<li>已知受影响项目：Beeg Blue Whale（主要流动性在MovePump合约中）</li>
+<li>主要是Sui生态中的小型meme币和老项目</li>
+</ul>
+<h2>4. 关键人物与证据</h2>
+<h3>4.1 Tyler Simpson (@quantumvoidlabs)</h3>
+<ul>
+<li>Quantum Void Labs创始人</li>
+<li>首先公开警告BlueMove清空流动性池</li>
+<li>声称曾三次向Sui网络警告BlueMove的风险</li>
+<li>提供了5月31日升级交易的具体区块地址</li>
+<li>批评Mysten Labs和Sui基金会边缘化独立项目</li>
+</ul>
+<h3>4.2 Defimon Alerts</h3>
+<ul>
+<li>链上监控账户</li>
+<li>发现链上消息——一个向攻击者发送的&quot;white hat&quot;谈判</li>
+<li>消息内容：&quot;你清空了BlueMove DEX池（~$400K）。保留30%作为white hat赏金，48小时内将剩余70%退回Sui地址&quot;</li>
+<li>退回地址：<code>0x85bf745a737a34bf73f360c22d5c8aea1f1767f3c458f5269a7c2f821b9d3781</code></li>
+</ul>
+<h3>4.3 @saksidasaksi</h3>
+<ul>
+<li>报告BlueMove正在从应用中移除流动性池</li>
+<li>声称BlueMove&quot;早就停止了开发&quot;</li>
+</ul>
+<h2>5. BlueMove历史模式</h2>
+<table><thead><tr><th>时间</th><th>事件</th></tr></thead><tbody>
+<tr><td>2023年8月</td><td>突然宣布72小时内停止Sei Network运营</td></tr>
+<tr><td>2026年5月31日</td><td>推送包含后门的v12升级，立即设为不可变</td></tr>
+<tr><td>2026年7月11日</td><td>抽空所有MovePump关联流动性池</td></tr>
+<tr><td>2026年7月12日</td><td>从应用界面移除流动性池</td></tr>
+<tr><td>截至2026年7月13日</td><td><strong>未发布任何公开回应</strong></td></tr>
+</tbody></table>
+<p>Sei Network的前例表明，BlueMove团队习惯于在极短时间内做出不可逆的运营决定，对用户缺乏长期责任。</p>
+<h2>6. Sui生态系统影响</h2>
+<h3>6.1 结构性问题</h3>
+<p>Tyler Simpson指出Sui生态系统的更深层问题：</p>
+<ul>
+<li>Mysten Labs和Sui基金会只支持少数项目（如WAL、DEEP）</li>
+<li>大量在链增长期启动的协议已经&quot;事实死亡&quot;，但用户不知道</li>
+<li>MovePump上的小项目依赖&quot;锁定流动性&quot;作为信任信号——这个信号是假的</li>
+</ul>
+<h3>6.2 Upgrade Cap治理的普遍风险</h3>
+<p>此事件暴露了Sui智能合约架构的一个结构性问题：</p>
+<ul>
+<li>任何人都可以成为upgrade cap持有者</li>
+<li>最后一次升级决定了一切——此后&quot;不可变&quot;只是表象</li>
+<li>需要验证&quot;冻结时代码是干净的&quot;，而不仅仅是&quot;代码被冻结了&quot;</li>
+</ul>
+<h2>7. ZachXBT覆盖状态</h2>
+<p><strong>ZachXBT尚未覆盖此事件。</strong></p>
+<p>独特分析价值：</p>
+<ol>
+<li><strong>&quot;锁定流动性&quot;是DeFi中最大的信任谎言之一</strong> — 教育社区</li>
+<li><strong>Sui upgrade cap攻击模式</strong> — 首次公开记录</li>
+<li><strong>团队自部署后门 vs 外部攻击</strong> — 内部威胁比外部威胁更难防范</li>
+<li><strong>与2023年Sei退出的模式对比</strong> — 行为一致性分析</li>
+</ol>
+<h2>8. 行动建议</h2>
+<h3>对Sui生态项目</h3>
+<ol>
+<li>审计所有MovePump相关持仓的流动性状态</li>
+<li>检查所依赖的合约是否曾被upgrade cap持有者修改</li>
+<li>考虑迁移到有可验证安全实践的DEX</li>
+</ol>
+<h3>对更广泛的DeFi社区</h3>
+<ol>
+<li>&quot;不可变&quot;≠ 安全——需要审计冻结前的代码</li>
+<li>流动性锁定需要链上证明，而非团队声明</li>
+<li>Upgrade cap权限应该被分散化或设置时间锁</li>
+</ol>
+<h2>9. 数据来源</h2>
+<table><thead><tr><th>来源</th><th>链接</th><th>说明</th></tr></thead><tbody>
+<tr><td>Cryptopolitan</td><td>https://coinfea.com/bluemove-liquidity-pools-drained-on-sui-as-users-allege-insider-backdoor/</td><td>Tyler Simpson分析、Defimon Alerts</td></tr>
+<tr><td>DodgeTheScam</td><td>https://dodgethescam.com/bluemove-drains-700k-sui-backdoor/</td><td>综合分析、upgrade cap机制</td></tr>
+<tr><td>Coin-Turk</td><td>https://en.coin-turk.com/observers-claim-bluemove-drained-sui-liquidity-pools-losses-exceed-700000-sui/</td><td>多来源交叉验证</td></tr>
+<tr><td>NoSmokesPort</td><td>https://nosmokesport.com/crypto-news/bluemove-liquidity-pools-dex-reportedly-drains-550-000-from/</td><td>技术细节、white hat消息</td></tr>
+</tbody></table>
+<hr>
+<p><em>本报告由链上侦探自动生成，所有信息来自公开来源。标注数据来源链接。</em></p>
+<p><em>调查时间：2026-07-13 16:03 UTC+8</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

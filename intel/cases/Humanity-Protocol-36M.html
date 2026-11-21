@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humanity Protocol $36M Hack — 深度调查报告</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>Humanity Protocol $36M Hack — 深度调查报告</h1>
+<p>&gt; 调查日期：2026-07-15</p>
+<p>&gt; 事件时间：2026年6月（细节于7月15日公开披露）</p>
+<p>&gt; 损失金额：$36M（H代币）</p>
+<p>&gt; 攻击类型：钓鱼邮件→员工笔记本入侵→OpSec失败</p>
+<p>&gt; 归因：North Korea Lazarus Group（Quantstamp归因）</p>
+<p>&gt; ZachXBT覆盖状态：❌ 未覆盖</p>
+<p>&gt; 当前市值：H代币市值~$211M</p>
+<hr>
+<h2>事件概述</h2>
+<p>去中心化身份协议Humanity Protocol在2026年6月遭受$36M黑客攻击。创始人Terence Kwok在7月15日接受Cointelegraph采访时首次详细披露事件经过：</p>
+<p><strong>根因</strong>：去年mainnet上线期间，多个生产密钥被意外备份到一台员工笔记本上——包括管理员热钱包密钥和两条链上的multisig owner密钥的法定数量（quorum）。这台笔记本随后被钓鱼邮件入侵。</p>
+<h2>攻击链还原</h2>
+<h3>1. 钓鱼入侵（初始访问）</h3>
+<ul>
+<li>员工收到伪装为韩国交易所Bithumb发来的&quot;代币锁仓计划更新&quot;钓鱼邮件</li>
+<li>邮件附件包含恶意软件</li>
+<li>恶意软件安装后，攻击者获得对笔记本的远程访问权限</li>
+<li><strong>归因</strong>：区块链安全公司Quantstamp确认，恶意附件的特征指向朝鲜关联威胁行为者</li>
+</ul>
+<h3>2. 密钥获取</h3>
+<ul>
+<li>攻击者在被入侵的笔记本上发现了：</li>
+<li><strong>管理员热钱包密钥</strong></li>
+<li><strong>multisig owner密钥的quorum数量</strong>（足以单独执行交易）</li>
+<li>这些密钥是mainnet上线时<strong>意外备份</strong>到该笔记本上的</li>
+</ul>
+<h3>3. 资金转移</h3>
+<ul>
+<li>利用获取的密钥，攻击者转移了价值$36M的Humanity (H) 代币</li>
+<li>具体转移路径和时间线待进一步链上追踪</li>
+</ul>
+<h2>关键分析</h2>
+<h3>OpSec失败是根因，不是代码漏洞</h3>
+<p>创始人Terence Kwok坦言：</p>
+<p>&gt; &quot;The hard lesson here is that operational security is as critical as smart-contract security, and we&#x27;re rebuilding accordingly.&quot;</p>
+<p>这个案例完美诠释了2026年安全威胁的核心转变：</p>
+<table><thead><tr><th>传统攻击</th><th>2026年主流攻击</th></tr></thead><tbody>
+<tr><td>智能合约漏洞</td><td>社会工程+OpSec失败</td></tr>
+<tr><td>代码审计可以发现</td><td>代码审计无法覆盖</td></tr>
+<tr><td>技术层面</td><td>人的层面</td></tr>
+</tbody></table>
+<h3>朝鲜威胁行为者的持续威胁</h3>
+<p>本次事件是2026年朝鲜关联黑客组织大规模加密盗窃的又一案例：</p>
+<ul>
+<li><strong>4月单月</strong>：朝鲜关联行为者窃取了$634M中的$578M（91%）</li>
+<li><strong>Drift Protocol</strong> $285M（4月1日）：6个月社会工程攻击→获取Security Council multisig签名密钥</li>
+<li><strong>Kelp DAO</strong> $292M（4月18日）：Lazarus Group TraderTraider子单位入侵LayerZero RPC节点</li>
+<li><strong>Humanity Protocol</strong> $36M（6月）：钓鱼邮件→员工笔记本→密钥获取</li>
+</ul>
+<h3>密钥管理灾难：一个&quot;意外备份&quot;引发的$36M损失</h3>
+<p>事件中最令人震惊的细节：</p>
+<ol>
+<li>Mainnet上线期间，生产密钥被<strong>意外备份</strong>到员工笔记本</li>
+<li>这些密钥包括管理员热钱包密钥和multisig quorum</li>
+<li>没有检测到这一安全违规</li>
+<li>该笔记本随后成为钓鱼攻击的目标</li>
+</ol>
+<p>这是典型的&quot;安全盲区&quot;——团队花大量资源保护智能合约，却忽视了最基本的密钥卫生（key hygiene）。</p>
+<h2>H1 2026安全态势</h2>
+<p>CertiK数据揭示的2026年上半年安全全景：</p>
+<table><thead><tr><th>指标</th><th>Q1 2026</th><th>Q2 2026</th></tr></thead><tbody>
+<tr><td>主要攻击向量</td><td>钓鱼（$508M）</td><td>钱包妥协（$807M）</td></tr>
+<tr><td>70%+损失来源</td><td>—</td><td>Drift + KelpDAO</td></tr>
+<tr><td>年度同比</td><td>下降46.8%至$1.32B</td><td>但因Bybit 2025 $1.4B基数误导</td></tr>
+</tbody></table>
+<p>SlowMist数据：</p>
+<ul>
+<li>182起安全事件（vs 去年121起）</li>
+<li>~$956M总损失</li>
+<li>供应链攻击12起，$298M（Kelp DAO单笔占98%）</li>
+<li>钱包妥协33起，$444M+</li>
+</ul>
+<h2>ChainSentinel关联</h2>
+<p>Humanity Protocol事件直接验证了ChainSentinel的多个核心价值主张：</p>
+<ol>
+<li><strong>&quot;合约退役审计&quot;之外的&quot;OpSec审计&quot;</strong>：不仅合约需要安全，密钥管理、员工设备、钓鱼防护都需要持续监控</li>
+<li><strong>实时监控价值</strong>：如果Humanity Protocol有链上实时监控，在密钥被滥用的第一时间就能触发警报</li>
+<li><strong>AI驱动的安全监控</strong>：传统审计无法检测&quot;意外备份密钥到笔记本&quot;这种OpSec失败，但持续的链上行为监控可以发现异常交易模式</li>
+</ol>
+<h2>ZachXBT未覆盖的独特价值</h2>
+<p>这是ZachXBT尚未覆盖的高价值事件。独特分析角度：</p>
+<ol>
+<li><strong>&quot;意外备份&quot;作为攻击向量</strong> — 这不是传统的&quot;私钥泄露&quot;，而是开发流程中的安全疏忽</li>
+<li><strong>朝鲜Lazarus的&quot;持久战&quot;</strong> — 从6个月社会工程（Drift）到钓鱼邮件（Humanity），攻击手法持续演化</li>
+<li><strong>&quot;OpSec = Security&quot;范式</strong> — 智能合约安全 ≠ 协议安全，人的因素是最后的防线</li>
+</ol>
+<h2>待追踪信息</h2>
+<ul>
+<li>攻击者钱包地址和资金流向</li>
+<li>被盗H代币是否通过跨链桥/混币器清洗</li>
+<li>Quantstamp完整技术报告</li>
+<li>SwissBorg API攻击与Humanity OpSec攻击的对比分析</li>
+<li>Humanity Protocol的重建计划和安全改进措施</li>
+</ul>
+<hr>
+<h2>数据来源</h2>
+<ol>
+<li>Cointelegraph: <a href="https://cointelegraph.com/news/humanity-protocol-operational-security-36m-hack">Humanity Protocol to Prioritize Operational Security following $36M Hack</a></li>
+<li>Quantstamp（钓鱼邮件截图+归因分析）</li>
+<li>CertiK H1 2026安全报告</li>
+<li>SlowMist H1 2026安全报告</li>
+<li>CoinMarketCap（H代币市值数据）</li>
+</ol>
+<hr>
+<p><em>调查状态：深度调查完成 | 待更新：攻击者链上地址、资金流向</em></p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V12 vs THORChain: Bounty Betrayal and the $10.7M Exploit That Followed</title>
+<style>
+:root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+header{padding:56px 0 32px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.2;margin:14px 0 10px;letter-spacing:-.02em}
+.lede{color:var(--dim);margin:0}
+.stats{display:flex;gap:36px;flex-wrap:wrap;margin:28px 0 0}
+.stat b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent)}
+.stat span{font-size:13px;color:var(--dim)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:48px 0 18px;font-family:var(--mono)}
+.case{border-bottom:1px solid #131b25;padding:18px 0}
+.case h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.case .meta{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px}
+.case p{margin:0;color:#a9bacd;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th{text-align:left;color:var(--dim);font-weight:500;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;padding:0 0 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 0;border-bottom:1px solid #131b25;font-family:var(--mono);font-size:13px}
+td.r{text-align:right}
+.note{margin-top:40px;padding:16px 18px;border:1px solid var(--line);border-radius:10px;color:var(--dim);font-size:13.5px}
+footer{padding:40px 0 64px;color:var(--dim);font-size:13px;border-top:1px solid var(--line);margin-top:56px}
+article h1{font-size:30px}
+article h2{font-size:20px;letter-spacing:0;text-transform:none;color:var(--text);margin:36px 0 12px;font-family:inherit}
+article h3{font-size:16px;margin:24px 0 8px}
+article p{margin:12px 0;color:#c3d2e2}
+article ul,article ol{color:#c3d2e2;padding-left:22px}
+article table{margin:18px 0}
+article td{font-family:inherit;font-size:13.5px;color:#c3d2e2;padding:8px 10px;border:1px solid #1c2634}
+article th{padding:8px 10px;border:1px solid #1c2634}
+article code{font-family:var(--mono);font-size:13px;background:#0b1119;padding:1px 5px;border-radius:4px}
+article pre{background:#06090d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto}
+article blockquote{border-left:2px solid var(--line);margin:14px 0;padding-left:14px;color:var(--dim)}
+</style></head><body><div class="wrap"><header><div class="brand">On-Chain Shadow · 调查</div><article><h1>V12 vs THORChain: Bounty Betrayal and the $10.7M Exploit That Followed</h1>
+<h2>Executive Summary</h2>
+<p>Security startup V12 disclosed a critical fund-draining vulnerability in THORChain&#x27;s GG20 threshold signature scheme (TSS) implementation to the protocol&#x27;s bug bounty program. Weeks later, THORChain silently patched the flaw and told V12 the bounty was &quot;Permanently Retired&quot; — without paying. On May 15, 2026, an attacker exploited a near-identical vulnerability, draining $10.7 million from one of THORChain&#x27;s five vaults. V12 has since announced plans to publish exploit code for additional vulnerabilities. This incident exposes systemic issues in DeFi bug bounty programs, responsible disclosure ethics, and the tension between protocol governance and security researcher rights.</p>
+<h2>Attack Vector Analysis</h2>
+<h3>The Original Vulnerability (Disclosed by V12)</h3>
+<p>THORChain employs a Threshold Signature Scheme (TSS) based on the GG20 protocol, where multiple validator nodes must co-sign transactions to move funds. No single node operator holds the complete private key. V12 identified a critical flaw in this implementation that could allow fund extraction.</p>
+<ul>
+<li><strong>Vulnerability Type</strong>: GG20 TSS implementation weakness</li>
+<li><strong>Severity</strong>: Critical (fund-draining)</li>
+<li><strong>Discovery</strong>: V12 security research team</li>
+<li><strong>Disclosure</strong>: Submitted through THORChain&#x27;s bug bounty program</li>
+<li><strong>THORChain&#x27;s Response</strong>: Silently patched, then marked bounty as &quot;Permanently Retired&quot;</li>
+</ul>
+<h3>The May 15 Exploit</h3>
+<p>On May 15, 2026, a newly added validator node exploited the GG20 TSS vulnerability (or a near-identical flaw), draining approximately $10.7 million from one of THORChain&#x27;s five vaults.</p>
+<p><strong>Attack Mechanics:</strong></p>
+<ul>
+<li>Attacker operated a newly added validator node</li>
+<li>Exploited undisclosed cryptographic weaknesses in GG20 TSS</li>
+<li>Soda Labs later confirmed it was a zero-day vulnerability</li>
+<li>The exploit required human-level cryptographic reasoning (AI models reportedly could not replicate the attack)</li>
+<li>Four other vaults remained unaffected</li>
+<li>Automatic solvency checks detected the imbalance and halted signing within minutes</li>
+</ul>
+<p><strong>Key Transaction Details:</strong></p>
+<ul>
+<li>Loss: ~$10.7 million from a single vault</li>
+<li>Detection: Automatic solvency monitoring within minutes</li>
+<li>Response: Node operators halted trading, chain observation, and churning</li>
+</ul>
+<h3>Timeline</h3>
+<table><thead><tr><th>Date</th><th>Event</th></tr></thead><tbody>
+<tr><td>Pre-May 2026</td><td>V12 discloses GG20 TSS vulnerability to THORChain bug bounty</td></tr>
+<tr><td>~2-3 weeks before May 15</td><td>THORChain silently patches the vulnerability</td></tr>
+<tr><td>~Same time</td><td>THORChain tells V12 bounty is &quot;Permanently Retired&quot; (no payment)</td></tr>
+<tr><td>May 15, 2026</td><td>Attacker exploits near-identical GG20 TSS flaw, drains $10.7M</td></tr>
+<tr><td>May 15, 2026</td><td>Trading halted, investigation begins</td></tr>
+<tr><td>Late May 2026</td><td>ADR-028 governance plan approved for loss recovery</td></tr>
+<tr><td>June 2026</td><td>THORChain begins 11-stage restart process with v3.19.0</td></tr>
+<tr><td>June ~11, 2026</td><td>V12 announces plans to publish exploit code for additional vulnerabilities</td></tr>
+</tbody></table>
+<h2>Technical Analysis</h2>
+<h3>GG20 TSS Vulnerability</h3>
+<p>THORChain&#x27;s vault security depends on the GG20 threshold signature protocol, which requires multiple nodes to collaboratively sign transactions. The vulnerability identified by V12 and subsequently exploited relates to cryptographic weaknesses in this implementation.</p>
+<p><strong>Critical Details:</strong></p>
+<ul>
+<li>The vulnerability exists in the TSS library implementation, not in the GG20 protocol specification itself</li>
+<li>A newly added node was able to exploit the weakness — raising questions about node admission vetting</li>
+<li>The fix required patching the entire TSS library, suggesting a deep implementation-level flaw</li>
+<li>Soda Labs confirmed the zero-day nature of the vulnerability</li>
+</ul>
+<h3>Controversial Response: Close-Source TSS Library</h3>
+<p>In a controversial decision, THORChain temporarily closed-sourced the TSS library during Soda Labs&#x27; security audit. Kenton, a THORChain team member, acknowledged this choice prioritized recovery speed over transparency. The library is expected to return to open-source status in future releases.</p>
+<p>This decision undermines one of blockchain&#x27;s core security principles: open auditability. Security researchers cannot verify that the patched TSS implementation is truly secure if the code is not publicly available.</p>
+<h3>The 11-Stage Restart Process (v3.19.0)</h3>
+<p>THORChain&#x27;s recovery involves a complex restart sequence:</p>
+<ol>
+<li>Validators review and approve v3.19.0</li>
+<li>Compromised Vault Mimir setting activated (isolates drained vault)</li>
+<li>ADR-028 data migration validated</li>
+<li>Key share integrity verification (keyverify protocol)</li>
+<li>Signing unhalt</li>
+<li>Churn initiation (replace active validator set)</li>
+<li>Asset transfer to newly generated vaults</li>
+<li>Secured assets return</li>
+<li>Trade assets return</li>
+<li>Liquidity provider actions resume</li>
+<li>Full trading resumes</li>
+</ol>
+<h3>ADR-028 Loss Recovery Framework</h3>
+<ul>
+<li>Uses protocol-owned liquidity (POL) to absorb losses</li>
+<li>Does NOT mint or sell new $RUNE</li>
+<li>Avoids direct dilution for existing holders</li>
+<li>Remaining shortfalls allocated across synthetic asset holders</li>
+<li>Future system revenue rebuilds POL post-restart</li>
+<li>A bounty window was activated for the attacker</li>
+<li>The linked node was fully slashed</li>
+</ul>
+<h2>Key Addresses &amp; On-Chain Data</h2>
+<table><thead><tr><th>Item</th><th>Detail</th></tr></thead><tbody>
+<tr><td>Protocol</td><td>THORChain (RUNE)</td></tr>
+<tr><td>Exploit Date</td><td>May 15, 2026</td></tr>
+<tr><td>Loss Amount</td><td>~$10.7 million</td></tr>
+<tr><td>Affected Component</td><td>1 of 5 vaults (GG20 TSS)</td></tr>
+<tr><td>Recovery Plan</td><td>ADR-028 (protocol reserves cover losses)</td></tr>
+<tr><td>Restart Version</td><td>v3.19.0</td></tr>
+<tr><td>Security Auditor</td><td>Soda Labs</td></tr>
+<tr><td>RUNE Price Impact</td><td>-35% over 30 days (trading ~$0.38-0.41)</td></tr>
+</tbody></table>
+<p><strong>Note</strong>: Specific attacker wallet addresses for the May 15 exploit have not been publicly disclosed in available sources. The compromised vault was quarantined.</p>
+<h2>Broader Context: Q2 2026 DeFi Security Landscape</h2>
+<p>This incident is part of a disturbing pattern in Q2 2026:</p>
+<ul>
+<li><strong>70+ exploits</strong> in Q2 2026, doubling the previous quarterly record (DefiLlama)</li>
+<li><strong>$746M</strong> total stolen in Q2</li>
+<li><strong>Bridge/infrastructure attacks</strong> dominate: $328M+ in bridge-related losses YTD</li>
+<li><strong>Key theft &gt; code bugs</strong>: The three largest Q2 incidents (Drift $285M, KelpDAO $293M, THORChain $10.7M) all involved operational/infrastructure failures, not smart contract logic flaws</li>
+<li><strong>~1 attack per day</strong> across the DeFi sector</li>
+</ul>
+<h2>Analysis: The Bug Bounty Ethical Crisis</h2>
+<h3>V12&#x27;s Position</h3>
+<p>V12 followed responsible disclosure practices:</p>
+<ol>
+<li>Identified vulnerability</li>
+<li>Reported through official bug bounty channel</li>
+<li>Waited for response</li>
+<li>Received no bounty payment and was told the bounty was &quot;retired&quot;</li>
+<li>Watched the same vulnerability class get exploited for $10.7M</li>
+<li>Now plans to publish exploit code as leverage</li>
+</ol>
+<h3>THORChain&#x27;s Position</h3>
+<p>THORChain&#x27;s actions raise serious concerns:</p>
+<ol>
+<li>Silently patched without acknowledging V12&#x27;s disclosure</li>
+<li>Retroactively &quot;retired&quot; the bounty (no payment)</li>
+<li>Closed-sourced the fix during audit (reduced transparency)</li>
+<li>Did not publicly credit V12 for the vulnerability discovery</li>
+</ol>
+<h3>Systemic Issues Exposed</h3>
+<ol>
+<li><strong>Bounty Program Credibility</strong>: If protocols can silently patch and retire bounties without payment, security researchers lose incentive for responsible disclosure</li>
+<li><strong>Power Imbalance</strong>: Protocols control the terms; researchers bear the cost of discovery with no guaranteed compensation</li>
+<li><strong>Transparency vs Speed</strong>: THORChain chose to close-source the TSS fix, prioritizing speed over community auditability</li>
+<li><strong>Retaliation Risk</strong>: V12&#x27;s threat to publish exploit code is a direct consequence of feeling exploited by the protocol</li>
+</ol>
+<h3>Implications for DeFi Security</h3>
+<ul>
+<li><strong>Researcher Disincentive</strong>: If V12&#x27;s experience becomes the norm, fewer researchers will report vulnerabilities through official channels</li>
+<li><strong>Exploit Code Publication</strong>: V12 publishing exploit code could enable copycat attacks on other protocols using similar TSS implementations</li>
+<li><strong>Regulatory Attention</strong>: Bug bounty program failures may attract regulatory scrutiny of DeFi governance practices</li>
+<li><strong>Insurance Gap</strong>: No clear framework exists for compensating researchers when protocols fail to honor bounty commitments</li>
+</ul>
+<h2>Lessons Learned</h2>
+<ol>
+<li><strong>Bug Bounty Programs Need Enforceable Commitments</strong>: Smart contract-based escrow for bounties could prevent retroactive retirement</li>
+<li><strong>Responsible Disclosure Must Be Reciprocal</strong>: Protocols that accept vulnerability reports have an ethical obligation to compensate discoverers</li>
+<li><strong>Open-Source During Fixes</strong>: Closing source code during security fixes undermines community trust and audit capability</li>
+<li><strong>Node Admission Controls</strong>: The THORChain exploit was facilitated by a &quot;newly added node&quot; — vetting processes need hardening</li>
+<li><strong>TSS Implementation Risks</strong>: Threshold signature schemes are only as strong as their specific implementation; protocol-level audits of TSS libraries are essential</li>
+</ol>
+<h2>Legal Implications</h2>
+<ul>
+<li>V12 may have legal grounds for breach of contract if THORChain&#x27;s bug bounty program constituted a binding agreement</li>
+<li>The silent patching before bounty retirement could constitute bad faith dealing</li>
+<li>V12&#x27;s planned publication of exploit code occupies a legal gray area (free speech vs. potential facilitation of future attacks)</li>
+<li>THORChain&#x27;s decision to slash the attacker&#x27;s node bond demonstrates on-chain enforcement capability, but does not address the bounty dispute</li>
+</ul>
+<h2>References</h2>
+<ol>
+<li>The Defiant — &quot;V12 Says THORChain Silently Patched Its Critical Bug, Then Told Researchers the Bounty Is &#x27;Permanently Retired&#x27;&quot; (June 2026)</li>
+<li>The Defiant — &quot;Q2 2026 Sets All-Time High for DeFi Hack Count With ~70 Exploits, $746M Stolen&quot; (June 12, 2026)</li>
+<li>CryptoNews — &quot;THORChain begins 11-step restart after $10.7M hack&quot; (June 10, 2026)</li>
+<li>BitcoinPlatform — &quot;THORChain creates an 11-step restart plan after a $10.7 million hack&quot; (June 10, 2026)</li>
+<li>99Bitcoins — &quot;THORChain V3.19 Is Live: Monero Is First Up But Can it Save RUNE?&quot; (June 12, 2026)</li>
+<li>TradersUnion — &quot;+8.49% for THORChain as exploit losses handled by protocol reserves&quot; (June 10, 2026)</li>
+<li>Intellectia — &quot;THORChain Enters Next Phase of Recovery Post Vault Exploit&quot; (June 9, 2026)</li>
+<li>CSDN — &quot;历年跨链合约恶意交易详解(一)——THORChain退款逻辑漏洞&quot; (June 12, 2026)</li>
+<li>DefiLlama — Hacks Database (https://defillama.com/hacks)</li>
+</ol>
+<hr>
+<p><em>Investigator: Onchain Shadow</em></p>
+<p><em>Date: June 14, 2026</em></p>
+<h2>OPSEC Statement / Disclaimer</h2>
+<p>This report is based solely on publicly available information from open-source intelligence (OSINT). No private data, non-public blockchain analytics tools, or confidential sources were used. All wallet addresses and transaction references are sourced from public blockchain explorers and published investigative reports. This report does not constitute legal, financial, or investment advice. The investigator has no financial position in any protocol mentioned. All findings are presented for educational and security research purposes only.</p></article></header>
+<footer>On-Chain Shadow · <a href="/">首页</a> · <a href="/intel/">情报档案</a></footer>
+</div></body></html>
