@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work with On-Chain Shadow — investigations, risk checks, incident response</title>
+<meta name="description" content="Independent on-chain forensics: fund tracing and attribution, token and contract risk assessment, incident response. 61 published case investigations.">
+<style>
+  :root{--bg:#080b10;--panel:#0e141c;--line:#1c2634;--text:#e6edf6;--dim:#8b9bb0;--accent:#4ee0c0;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  h1{font-size:clamp(30px,4.6vw,46px);line-height:1.15;letter-spacing:-.02em;margin:16px 0 14px;font-weight:660}
+  .lede{color:var(--dim);font-size:18px;margin:0;max-width:640px}
+  section{padding:44px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-family:var(--mono);margin:0 0 22px}
+  h3{margin:0 0 6px;font-size:18px;font-weight:620}
+  .item{padding:18px 0;border-bottom:1px solid #131b25}
+  .item:last-child{border-bottom:0}
+  .item p{margin:6px 0 0;color:#a9bacd;font-size:14.5px}
+  .price{font-family:var(--mono);color:var(--accent);font-size:14px}
+  .stats{display:flex;gap:40px;flex-wrap:wrap;margin-top:8px}
+  .stat b{display:block;font-family:var(--mono);font-size:28px;color:var(--accent)}
+  .stat span{font-size:13px;color:var(--dim)}
+  .cta{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;background:var(--accent);color:#04120e;font-weight:640;margin-top:8px}
+  footer{padding:36px 0 64px;color:var(--dim);font-size:13.5px}
+  .note{color:var(--dim);font-size:13px;margin-top:10px}
+</style></head>
+<body><div class="wrap">
+
+<header>
+  <div class="brand">On-Chain Shadow · services</div>
+  <h1>Trace the money. Check the token. Explain what happened.</h1>
+  <p class="lede">Independent on-chain forensics. I have published 61 case investigations, scanned 64 days of public GitHub leaks, and run a live API that AI agents can pay for in USDC.</p>
+</header>
+
+<section>
+  <h2>What I do</h2>
+  <div class="item">
+    <h3>Fund tracing and attribution</h3>
+    <p>Follow stolen assets across wallets, bridges and mixers. Reconstruct the flow wallet by wallet, identify the funding source, and write it up as an evidence chain a lawyer, an exchange or a counterparty can act on.</p>
+  </div>
+  <div class="item">
+    <h3>Token and contract risk</h3>
+    <p>Rug and honeypot assessment, holder concentration, mint and admin authority, upgradeability, and what can change after you buy. Delivered as a short report with the specific on-chain evidence, not a score out of 100.</p>
+  </div>
+  <div class="item">
+    <h3>Incident response for teams</h3>
+    <p>You were drained and the first hours matter. I map the outflow, flag the addresses for exchanges, and hand you a timeline you can publish or hand to law enforcement.</p>
+  </div>
+  <div class="item">
+    <h3>Security data for AI agents</h3>
+    <p>The same data as an API: token safety, contract risk and address analysis, charged per call over x402 in USDC on Base. No accounts, no API keys. <a href="/">See the free check</a>.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Evidence, not adjectives</h2>
+  <div class="stats">
+    <div class="stat"><b>61</b><span>case investigations published</span></div>
+    <div class="stat"><b>64</b><span>days of leak scanning</span></div>
+    <div class="stat"><b>49</b><span>tests green on the API</span></div>
+  </div>
+  <p class="note">Every case is public: <a href="/intel/">read the archive</a>. Recent work covers Raydium AMM V3, Hyperbridge, Verus, Taiko SGX, Aztec Connect, SwissBorg and THORChain.</p>
+</section>
+
+<section>
+  <h2>How an engagement runs</h2>
+  <div class="item">
+    <h3>1. Scope</h3>
+    <p>You send the address, transaction hash or contract. I confirm in writing what question the report will answer and what it will not. Fixed fee agreed before any work starts.</p>
+  </div>
+  <div class="item">
+    <h3>2. Work</h3>
+    <p>Usually 2 to 7 days depending on how many hops the funds took. You get progress on day two, not silence.</p>
+  </div>
+  <div class="item">
+    <h3>3. Delivery</h3>
+    <p>A written report with every claim sourced to an on-chain transaction. Publishable, or private. I do not contact third parties, exchanges or the attacker on your behalf without written instruction.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Indicative pricing</h2>
+  <div class="item"><h3>Token / contract risk check <span class="price">from $300</span></h3><p>Single token or contract, written findings, 2 to 3 days.</p></div>
+  <div class="item"><h3>Fund trace <span class="price">from $800</span></h3><p>Trail across wallets and bridges, attribution where the evidence supports it, 3 to 7 days.</p></div>
+  <div class="item"><h3>Ongoing monitoring <span class="price">from $500 / month</span></h3><p>Address and token watchlist, alerts when something moves, monthly summary.</p></div>
+  <p class="note">Prices are indicative and quoted per engagement after scoping. Payment in USDC or by invoice.</p>
+</section>
+
+<section>
+  <h2>Get in touch</h2>
+  <p>Message me on X: <a href="https://x.com/mt_prithviraj">@mt_prithviraj</a>. Say what the address is and what you need to know. If it is not something I can answer honestly, I will tell you before you pay anything.</p>
+  <a class="cta" href="https://x.com/mt_prithviraj">DM on X</a>
+</section>
+
+<footer>On-Chain Shadow · independent, self-funded, no token, no ads. <a href="/">Home</a> · <a href="/intel/">Archive</a> · <a href="/tools/">Tool reviews</a></footer>
+</div></body></html>
