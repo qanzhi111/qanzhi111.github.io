@@ -1,0 +1,13 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://onchain-shadow.github.io/ai-tool-reviews-2026/sitemap.xml
+
+# Crawl delay (optional, be respectful)
+Crawl-delay: 1
+
+# Block common crawler issues
+Disallow: /*.json$
+Disallow: /*.md$

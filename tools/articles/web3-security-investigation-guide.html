@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3 Security Investigation Guide: How to Trace Stolen Crypto & Detect Rug Pulls</title>
+    <meta name="description" content="Learn Web3 security investigation methodology. Discover how to trace stolen crypto, detect rug pulls, and use on-chain forensics tools like Etherscan and Arkham.">
+    <meta name="keywords" content="Web3 security, crypto investigation, rug pull detection, on-chain forensics, blockchain analysis, Etherscan, Arkham, DeFi security">
+    <meta name="author" content="AI Tool Reviews">
+    <link rel="canonical" href="https://qanzhi111.github.io/tools/articles/web3-security-investigation-guide.html">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Web3 Security Investigation Guide: How to Trace Stolen Crypto & Detect Rug Pulls">
+    <meta property="og:description" content="Learn how to trace stolen crypto and detect rug pulls using on-chain forensics.">
+    <meta property="og:url" content="https://qanzhi111.github.io/tools/articles/web3-security-investigation-guide.html">
+    <meta property="og:site_name" content="AI Tool Reviews 2026">
+    <meta property="article:published_time" content="2026-01-11">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Web3 Security Investigation Guide">
+    <meta name="twitter:description" content="Learn how to trace stolen crypto and detect rug pulls using on-chain forensics.">
+    
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Web3 Security Investigation Guide: How to Trace Stolen Crypto & Detect Rug Pulls",
+        "description": "Learn Web3 security investigation methodology. Discover how to trace stolen crypto, detect rug pulls, and use on-chain forensics tools.",
+        "author": {
+            "@type": "Organization",
+            "name": "AI Tool Reviews"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "AI Tool Reviews",
+            "url": "https://qanzhi111.github.io/tools/"
+        },
+        "datePublished": "2026-01-11",
+        "dateModified": "2026-01-11",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://qanzhi111.github.io/tools/articles/web3-security-investigation-guide.html"
+        }
+    }
+    </script>
+    
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <header>
+        <h1>🤖 AI Tool Reviews 2026</h1>
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="../index.html#articles">All Reviews</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a> / <a href="../index.html#articles">Guides</a> / Web3 Security Investigation
+        </div>
+
+        <article class="content-wrapper">
+            <h1>Web3 Security Investigation: How to Trace Stolen Crypto and Detect Rug Pulls</h1>
+            
+            <p>The decentralized finance ecosystem lost over $1.8 billion to hacks and scams in 2025 alone. From sophisticated smart contract exploits to social engineering campaigns, the threats keep evolving — and most victims never recover their funds.</p>
+            
+            <p>But here's what most people don't realize: <strong>blockchain transactions are public</strong>. Every transfer, every wallet, every contract interaction is permanently recorded and freely accessible. The same transparency that makes crypto appealing also makes it investigable.</p>
+            
+            <p>Whether you've been affected by a scam or you want to understand how on-chain forensics actually works, this article walks you through the core methodology.</p>
+
+            <h2>The 5 Major Attack Vectors in Web3</h2>
+            <p>Understanding the threat landscape is the first step to investigating it:</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attack Type</th>
+                        <th>Typical Loss</th>
+                        <th>Detection Difficulty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Rug Pull</strong></td><td>$1M - $50M+</td><td>Medium — liquidity removal is visible on-chain</td></tr>
+                    <tr><td><strong>Phishing</strong></td><td>$500 - $5M</td><td>Hard — victims often don't realize for days</td></tr>
+                    <tr><td><strong>Smart Contract Exploit</strong></td><td>$5M - $600M</td><td>Medium — unusual contract interactions stand out</td></tr>
+                    <tr><td><strong>Bridge Attack</strong></td><td>$50M - $600M</td><td>Low — massive fund movements are obvious</td></tr>
+                    <tr><td><strong>Social Engineering</strong></td><td>$10K - $10M</td><td>Hard — relies on human trust, not code</td></tr>
+                </tbody>
+            </table>
+
+            <h2>How On-Chain Investigation Works: The INVEST Framework</h2>
+            <p>Professional investigators follow a structured methodology. Here's a simplified version:</p>
+
+            <h3>1. Identify the Alert</h3>
+            <p>The trigger could be anything: a sudden TVL drop, a community report, or an unusual transaction. The key is speed — the faster you start tracing, the more likely funds haven't been laundered through mixers yet.</p>
+
+            <h3>2. Navigate the Transaction Flow</h3>
+            <p>Using block explorers like Etherscan, trace the flow of funds from the victim's wallet or exploited contract. Look for:</p>
+            <ul>
+                <li>Immediate transfers to the attacker's wallet</li>
+                <li>Conversion to privacy coins or mixing services</li>
+                <li>Distribution across multiple wallets (peeling chains)</li>
+            </ul>
+
+            <h3>3. Verify the Exploit</h3>
+            <p>If a smart contract was exploited, read the contract code. Look for:</p>
+            <ul>
+                <li>Reentrancy vulnerabilities</li>
+                <li>Access control flaws</li>
+                <li>Flash loan attack patterns</li>
+                <li>Unusual function calls in the attack transaction</li>
+            </ul>
+
+            <h3>4. Establish Connections</h3>
+            <p>Link wallets and addresses using:</p>
+            <ul>
+                <li>Funding source analysis (which wallets funded the attacker?)</li>
+                <li>Timing correlations</li>
+                <li>Shared withdrawal patterns to centralized exchanges</li>
+            </ul>
+
+            <h3>5. Secure the Evidence</h3>
+            <p>Document everything:</p>
+            <ul>
+                <li>Screenshot all relevant transactions</li>
+                <li>Record wallet addresses and timestamps</li>
+                <li>Save contract code at the time of exploit</li>
+                <li>Note any off-chain communications</li>
+            </ul>
+
+            <h3>6. Take Action</h3>
+            <p>Depending on your findings:</p>
+            <ul>
+                <li>Report to relevant exchanges for wallet freezing</li>
+                <li>File with law enforcement if applicable</li>
+                <li>Submit to bug bounty platforms</li>
+                <li>Contact the project team for responsible disclosure</li>
+            </ul>
+
+            <h2>Essential Tools for Web3 Investigation</h2>
+            <p>Here are the tools professional investigators rely on:</p>
+
+            <h3>Block Explorers & Analytics</h3>
+            <ul>
+                <li><strong>Etherscan</strong> — Transaction tracing, contract verification</li>
+                <li><strong>BscScan</strong> — Binance Smart Chain analysis</li>
+                <li><strong>Bubblemaps</strong> — Visual wallet clustering</li>
+                <li><strong>Arkham Intelligence</strong> — Entity identification and labeling</li>
+            </ul>
+
+            <h3>Contract Analysis</h3>
+            <ul>
+                <li><strong>Foundry</strong> — Compile, test, and reproduce exploits</li>
+                <li><strong>Slither</strong> — Automated vulnerability detection</li>
+                <li><strong>Tenderly</strong> — Transaction simulation and debugging</li>
+            </ul>
+
+            <h3>Monitoring & Automation</h3>
+            <ul>
+                <li><strong>GitHub Actions</strong> — Automated on-chain monitoring</li>
+                <li><strong>Custom Python scripts</strong> — Threat feed integration</li>
+                <li><strong>TVL anomaly detection systems</strong></li>
+            </ul>
+
+            <h2>A Real-World Example: How a Rug Pull Investigation Unfolds</h2>
+            <p>Let's say a project's token price suddenly drops 95%. Here's what an investigator does:</p>
+            
+            <ol>
+                <li><strong>Check liquidity pool</strong> — The LP tokens were removed, draining the trading pair</li>
+                <li><strong>Trace the removed funds</strong> — The developer wallet moved LP tokens to a fresh address</li>
+                <li><strong>Follow the conversion</strong> — The stolen tokens were swapped for ETH through a DEX aggregator</li>
+                <li><strong>Identify the exit</strong> — ETH was sent to a centralized exchange (CEX) for cash-out</li>
+                <li><strong>Document and report</strong> — The CEX is notified with transaction evidence, potentially freezing the account</li>
+            </ol>
+            
+            <p>The entire investigation might take 2-4 hours. Speed matters because once funds hit a mixer like Tornado Cash, tracing becomes significantly harder.</p>
+
+            <div class="cta-box">
+                <h3>Want to Learn the Complete Methodology?</h3>
+                <p>This article covers the basics, but real investigations require deeper knowledge — from reading Solidity exploit code to building automated monitoring systems that catch attacks before they're widely known.</p>
+                <p><strong>Web3 Security Investigation: A Practical Guide</strong> is a 9,000+ word guide that covers:</p>
+                <ul style="text-align:left;display:inline-block;">
+                    <li>✅ Complete INVEST framework with checklists for each phase</li>
+                    <li>✅ Three full case studies (Rug Pull, Phishing, Smart Contract Exploit) with step-by-step transaction traces</li>
+                    <li>✅ Professional toolkit setup (Etherscan, CoinGecko, Foundry)</li>
+                    <li>✅ Automated 24/7 monitoring with Python scripts and GitHub Actions</li>
+                    <li>✅ Investigation report templates</li>
+                    <li>✅ Monetization strategies — bug bounties, consulting, whistleblower rewards (15-30% of recovered funds)</li>
+                    <li>✅ Legal and ethical guidelines for responsible investigation</li>
+                </ul>
+                <a href="https://jotter767.gumroad.com/l/web3-security-investigation-guide" target="_blank" rel="nofollow sponsored">Get the Guide — $19.99 →</a>
+            </div>
+
+            <h2>Start Investigating</h2>
+            <p>The tools and techniques in this guide are available to anyone with an internet connection. The blockchain doesn't hide anything — you just need to know where to look.</p>
+            
+            <p>Whether you're protecting your own assets, helping others recover funds, or building a career in Web3 security, on-chain investigation is a skill that pays dividends in multiple ways.</p>
+
+            <div class="internal-links">
+                <a href="ai-project-management-tools-2026.html">AI Project Management Tools</a>
+                <a href="ai-email-marketing-tools-2026.html">AI Email Marketing Tools</a>
+                <a href="ai-automation-tools-2026.html">AI Automation Tools</a>
+                <a href="online-course-platforms-2026.html">Online Course Platforms</a>
+            </div>
+
+            <div class="disclosure-section">
+                <p><strong>Affiliate Disclosure:</strong> This article contains affiliate links. If you purchase through these links, we may earn a commission at no additional cost to you. We only recommend tools we've thoroughly evaluated.</p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 AI Tool Reviews. All rights reserved.</p>
+        <p><a href="../sitemap.xml">Sitemap</a> | <a href="../robots.txt">robots.txt</a></p>
+    </footer>
+</body>
+</html>
