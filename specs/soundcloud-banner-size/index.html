@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundCloud banner size: 2480 × 520 header, 800 × 800 artwork, 2MB</title>
+<meta name="description" content="SoundCloud profile header: for best results at least 2480 × 520 px with a 2MB limit. Track artwork: at least 800 × 800 px under 2MB. Playlist artwork: up to 2MB. Quoted from SoundCloud's help pages.">
+<link rel="canonical" href="https://qanzhi111.github.io/specs/soundcloud-banner-size/">
+<style>
+  :root{--bg:#FFFCF7;--ink:#22304A;--dim:#5B6B80;--line:#E3D9C8;--teal:#146B78;--warn:#B4651A}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  .wrap{max-width:860px;margin:0 auto;padding:0 22px 80px}
+  header{padding:52px 0 26px;border-bottom:1px solid var(--line)}
+  h1{font-size:clamp(30px,4.4vw,44px);line-height:1.12;margin:0 0 14px;font-weight:760;letter-spacing:-.02em}
+  .lede{color:var(--dim);font-size:18px;margin:0}
+  h2{font-size:24px;margin:44px 0 12px;font-weight:720}
+  h3{font-size:18px;margin:26px 0 6px;font-weight:700}
+  p{margin:10px 0}
+  a{color:var(--teal)}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:15.5px}
+  th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+  th{background:#F6F0E4;font-weight:700}
+  code{background:#F2EADB;padding:1px 5px;border-radius:4px;font-size:.94em}
+  .answer{display:grid;gap:12px;margin:26px 0}
+  .card{border:1px solid var(--line);border-left:5px solid var(--teal);background:#fff;padding:14px 16px;border-radius:6px}
+  .card b{display:block;font-size:15px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .card span{font-size:21px;font-weight:760;display:block;margin-top:4px}
+  .quote{border-left:4px solid var(--warn);background:#FFF7EC;padding:12px 16px;margin:14px 0;font-size:16px}
+  .note{background:#FFF3E2;border:1px solid #EBCBA6;border-radius:6px;padding:14px 16px;margin:18px 0;font-size:15.5px}
+  figure{margin:26px 0}
+  figure img{width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+  figcaption{color:var(--dim);font-size:14px;margin-top:8px}
+  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:14.5px}
+  .faq p{margin:6px 0 0}
+</style></head>
+<body><div class="wrap">
+
+<header>
+  <h1>SoundCloud banner size</h1>
+  <p class="lede">Three placements, three different specs, and three different official sentences. Here is what SoundCloud actually publishes, quoted.</p>
+</header>
+
+<div class="answer">
+  <div class="card"><b>Profile header</b><span>at least 2480 × 520 px, 2MB limit</span></div>
+  <div class="card"><b>Track artwork</b><span>at least 800 × 800 px, under 2MB</span></div>
+  <div class="card"><b>Playlist artwork</b><span>up to 2MB, any size</span></div>
+</div>
+
+<h2>The header: "for best results", not a hard minimum</h2>
+
+<p>SoundCloud's wording matters more than most size guides admit. The header page does not call 2480 × 520 a requirement.</p>
+
+<div class="quote">"For best results, upload JPG or PNG images of at least 2480 x 520 pixels with a 2MB size limit."<br><span style="font-size:14px">— Update Your Profile Image and Header</span></div>
+
+<p>So: 2480 × 520 is the size you want. Write it as <em>for best results</em>, or as <em>at least 2480 × 520</em>. Do not relabel it "minimum required" — the page does not say that, and the difference shows up when a smaller upload is still accepted.</p>
+
+<figure>
+  <img src="/img/soundcloud-banner-spec.svg" alt="Diagram of a 2480 by 520 pixel banner canvas with a 2240 by 380 safe area and the strips that crop on narrow screens">
+  <figcaption>Canvas geometry, 2480 × 520. The safe area is our drawing aid, not a SoundCloud spec — see below.</figcaption>
+</figure>
+
+<h2>Track artwork: this one is a spec</h2>
+
+<div class="quote">"Specs: Upload a .jpg or .png (at least 800 x 800 pixels) under 2MB."<br><span style="font-size:14px">— Edit and customize your tracks</span></div>
+
+<p>Note what is absent: no "for best results". This sentence opens with "Specs:" and states the floor. Write <strong>at least 800 × 800 pixels</strong>. Softening it into a suggestion tells readers that 600 px will do, and it will not.</p>
+
+<h2>Playlist artwork: a third sentence, a third limit</h2>
+
+<div class="quote">"We accept any images up to 2mb in size."<br><span style="font-size:14px">— Creating and customizing a playlist</span></div>
+
+<p>Three placements, three sources, and the 2MB limit is worded three different ways: <code>with a 2MB size limit</code>, <code>under 2MB</code>, <code>up to 2mb in size</code>. Quote each one against its own page. Collapsing them into a single "2MB file limit" inventing a spec SoundCloud never wrote.</p>
+
+<h2>Safe area: SoundCloud publishes none</h2>
+
+<p>The header help page warns that text gets cropped on smaller screens. It does not give an edge, a rectangle, or a percentage that survives every device.</p>
+
+<p>So there is no official safe area to cite. You can still work one out for your own layout — the diagram above uses a 120 px side band and a 70 px top and bottom band as a drawing convention — but do not present it as SoundCloud's number, because it is not.</p>
+
+<div class="note"><strong>Practical rule:</strong> keep your name, logo and any lettering away from the edges. Then upload and look at the result on a phone. That check takes ten seconds and beats any margin you computed for a device you do not own.</div>
+
+<h2>Uploading from a phone</h2>
+
+<p>SoundCloud's header guide includes iOS and Android steps: open your profile, edit it, tap the current header. The file preparation happens wherever you like; the save happens in SoundCloud.</p>
+
+<h2>Why the header will not zoom</h2>
+
+<p>Zoom is unavailable when the selected image is smaller than <strong>1240 × 260 pixels</strong>. If you are fighting the zoom control, your upload is under that floor. Best results still means at least 2480 × 520.</p>
+
+<h2>Compression after upload</h2>
+
+<p>The cited pages give no final encoded quality and no promise that the file survives unmodified. Check the copy you downloaded, then check the live profile separately. Those are two different artifacts.</p>
+
+<h2>Playlist artwork does not cascade</h2>
+
+<p>Changing a playlist image does not update the covers of the tracks inside it. The playlist guide says so. If you replaced the playlist art and the tracks still look old, that is expected.</p>
+
+<h2>Three limits, side by side</h2>
+
+<table>
+  <tr><th>Placement</th><th>Official wording</th><th>Source page</th></tr>
+  <tr><td>Profile header</td><td>at least 2480 x 520 pixels, 2MB size limit</td><td>Update Your Profile Image and Header</td></tr>
+  <tr><td>Track artwork</td><td>at least 800 x 800 pixels, under 2MB</td><td>Edit and customize your tracks</td></tr>
+  <tr><td>Playlist artwork</td><td>any images up to 2mb in size</td><td>Creating and customizing a playlist</td></tr>
+</table>
+
+<h2 class="faq">Questions</h2>
+<div class="faq">
+<h3>Which side gets cropped on a phone?</h3>
+<p>SoundCloud names no edge and no safe area. Test your own saved profile on your own device.</p>
+<h3>Is 2480 × 520 mandatory?</h3>
+<p>No. The guide says "for best results". It does recommend that size, and it is what I would upload.</p>
+<h3>Can I upload from the app?</h3>
+<p>Yes. Open your profile, edit, tap the header.</p>
+<h3>Does new playlist artwork replace every track cover?</h3>
+<p>No.</p>
+</div>
+
+<footer>
+  <p><strong>Sources</strong> — SoundCloud Help Center, checked 25 November 2026: <em>Update Your Profile Image and Header</em>, <em>Edit and customize your tracks</em>, <em>Creating and customizing a playlist</em>.</p>
+  <p>Exact device crop boundaries and final upload compression settings are not published in those documents. Nothing on this page is attributed to SoundCloud beyond the quoted sentences above.</p>
+</footer>
+
+</div></body></html>
