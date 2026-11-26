@@ -11,6 +11,8 @@
   .sub{color:var(--dim);font-size:14px;margin:0 0 20px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
   .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;font-weight:700}
+  .imgnote{color:var(--dim);font-size:13px;margin:-4px 0 12px}
+  .imgnote.warn{color:#F0684A}
   pre{margin:0;white-space:pre-wrap;word-break:break-word;font:15.5px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0B1118;border:1px solid var(--line);border-radius:9px;padding:13px;color:#DCE7F2}
   button{margin-top:12px;width:100%;padding:14px;border:0;border-radius:10px;background:var(--accent);color:#04120E;font-size:16px;font-weight:800;font-family:inherit}
   button:active{opacity:.8}
@@ -19,22 +21,24 @@
 </style></head>
 <body>
 <h1>待发队列</h1>
-<p class="sub">点按钮复制 → 切到 X app → 粘贴 → 发</p>
+<p class="sub">先存图 → 再复制文字 → 在 X app 里发（每条都带图）</p>
 <div class="card">
   <div class="label">8. 观察帖（无链接）</div>
+  <img src="https://qanzhi111.github.io/img/x/q8-deprecated.png" alt="" style="width:100%;border-radius:10px;border:1px solid var(--line);display:block;margin-bottom:12px"><div class="imgnote">长按图片 → 保存到相册，发帖时选它</div>
   <pre id="t1">Deprecated is not disabled.
 
 Somewhere on-chain right now sits a contract everybody thinks is dead, holding real money, with no kill switch.</pre>
-  <button onclick="copy('t1', this)">复制这条</button>
+  <button onclick="copy('t1', this)">复制文字</button>
 </div>
 <div class="card">
   <div class="label">9. Uniswap Phishing $400K+（带链接）</div>
+  <img src="https://qanzhi111.github.io/img/x/q9-uniswap-phish.png" alt="" style="width:100%;border-radius:10px;border:1px solid var(--line);display:block;margin-bottom:12px"><div class="imgnote">长按图片 → 保存到相册，发帖时选它</div>
   <pre id="t2">Search &quot;Uniswap&quot; on Google and the first result might take everything.
 
 $400,000+ stolen through fake Google ads. Two attacker wallets hold ~146 ETH. The scam is still running.
 
 Full investigation: link in bio.</pre>
-  <button onclick="copy('t2', this)">复制这条</button>
+  <button onclick="copy('t2', this)">复制文字</button>
 </div>
 <p class="hint">发完回聊天里说「发了」，我打勾并更新这一页。</p>
 <script>
