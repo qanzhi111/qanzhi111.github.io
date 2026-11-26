@@ -20,29 +20,21 @@
 <body>
 <h1>待发队列</h1>
 <p class="sub">点按钮复制 → 切到 X app → 粘贴 → 发</p>
-
 <div class="card">
-  <div class="label">第 5 条 · THORChain</div>
-  <pre id="t1">THORChain lost $10.7M to a fix that was already written.
+  <div class="label">8. 观察帖（无链接）</div>
+  <pre id="t1">Deprecated is not disabled.
 
-The bug was known. The patch was scheduled. The deploy automation failed, and the vulnerability stayed live.
-
-Full investigation: link in bio.</pre>
+Somewhere on-chain right now sits a contract everybody thinks is dead, holding real money, with no kill switch.</pre>
   <button onclick="copy('t1', this)">复制这条</button>
 </div>
-
 <div class="card">
-  <div class="label">第 7 条 · DxSale</div>
-  <pre id="t2">$7.3M of "locked" liquidity was actually unlockable the whole time.
+  <div class="label">10. 观察帖（无链接）</div>
+  <pre id="t2">A 3-of-5 multisig with all five keys on one laptop is a 1-of-1.
 
-DxSale's legacy locker contracts had admin functions that could move the unlock date. The "permanent lock" was a UI label. 1,400+ projects affected.
-
-Full investigation: link in bio.</pre>
+This is not a hypothetical. It has cost $36M this year alone.</pre>
   <button onclick="copy('t2', this)">复制这条</button>
 </div>
-
 <p class="hint">发完回聊天里说「发了」，我打勾并更新这一页。</p>
-
 <script>
 function copy(id, btn){
   const text = document.getElementById(id).innerText;
@@ -55,7 +47,7 @@ function fallback(text, done){
   const ta = document.createElement('textarea');
   ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
   document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); done(); } catch(e){ alert('长按上面文字手动复制'); }
+  try { document.execCommand('copy'); done(); } catch(e) { alert('长按上面文字手动复制'); }
   document.body.removeChild(ta);
 }
 </script>
