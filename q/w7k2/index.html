@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>待发队列</title>
+<style>
+  :root{--bg:#0E141C;--card:#151E29;--line:#243040;--ink:#E6EDF6;--dim:#8B9BB0;--accent:#4EE0C0}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;padding:18px 16px 60px}
+  h1{font-size:21px;margin:0 0 4px;font-weight:760}
+  .sub{color:var(--dim);font-size:14px;margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;font-weight:700}
+  pre{margin:0;white-space:pre-wrap;word-break:break-word;font:15.5px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0B1118;border:1px solid var(--line);border-radius:9px;padding:13px;color:#DCE7F2}
+  button{margin-top:12px;width:100%;padding:14px;border:0;border-radius:10px;background:var(--accent);color:#04120E;font-size:16px;font-weight:800;font-family:inherit}
+  button:active{opacity:.8}
+  .done{background:#2A3A4E;color:var(--dim)}
+  .hint{color:var(--dim);font-size:13px;margin-top:10px}
+</style></head>
+<body>
+<h1>待发队列</h1>
+<p class="sub">点按钮复制 → 切到 X app → 粘贴 → 发</p>
+
+<div class="card">
+  <div class="label">第 5 条 · THORChain</div>
+  <pre id="t1">THORChain lost $10.7M to a fix that was already written.
+
+The bug was known. The patch was scheduled. The deploy automation failed, and the vulnerability stayed live.
+
+Full investigation: link in bio.</pre>
+  <button onclick="copy('t1', this)">复制这条</button>
+</div>
+
+<div class="card">
+  <div class="label">第 7 条 · DxSale</div>
+  <pre id="t2">$7.3M of "locked" liquidity was actually unlockable the whole time.
+
+DxSale's legacy locker contracts had admin functions that could move the unlock date. The "permanent lock" was a UI label. 1,400+ projects affected.
+
+Full investigation: link in bio.</pre>
+  <button onclick="copy('t2', this)">复制这条</button>
+</div>
+
+<p class="hint">发完回聊天里说「发了」，我打勾并更新这一页。</p>
+
+<script>
+function copy(id, btn){
+  const text = document.getElementById(id).innerText;
+  const done = () => { const o = btn.textContent; btn.textContent = '已复制'; btn.classList.add('done'); setTimeout(()=>{btn.textContent=o;btn.classList.remove('done');},1800); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallback(text, done));
+  } else { fallback(text, done); }
+}
+function fallback(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){ alert('长按上面文字手动复制'); }
+  document.body.removeChild(ta);
+}
+</script>
+</body></html>

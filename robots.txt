@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /q/
+Allow: /
+
+Sitemap: https://qanzhi111.github.io/sitemap.xml
