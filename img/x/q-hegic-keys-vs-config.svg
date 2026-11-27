@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <rect width="1200" height="675" fill="#0E141C"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#F0684A"/>
+  <text stroke="none" x="72" y="196" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="800" fill="#E6EDF6">Two causes, one shape</text>
+  <text stroke="none" x="72" y="272" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="600" fill="#8B9BB0">Keys: Chainflip $11.96M, Wagyu $13.51M. Config: Hegic $1.0M, oracle.</text>
+  <line x1="72" y1="330" x2="360" y2="330" stroke="#F0684A" stroke-width="7"/>
+  <text stroke="none" x="72" y="612" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700" fill="#5B6B80">November 2026 · nobody broke either one</text>
+</svg>
